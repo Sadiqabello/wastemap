@@ -1,0 +1,28 @@
+import { z } from "zod";
+
+export const reportSchema = z.object({
+  title: z
+    .string()
+    .min(5, "Title must be at least 5 characters")
+    .max(100, "Title must be under 100 characters"),
+  description: z
+    .string()
+    .min(10, "Description must be at least 10 characters")
+    .max(2000, "Description must be under 2000 characters"),
+  category: z.enum([
+    "household",
+    "industrial",
+    "hazardous",
+    "electronic",
+    "construction",
+    "medical",
+    "organic",
+    "other",
+  ]),
+  severity: z.enum(["low", "medium", "high", "critical"]),
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+  address: z.string().optional(),
+});
+
+export type ReportFormData = z.infer<typeof reportSchema>;

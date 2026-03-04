@@ -1,65 +1,53 @@
-import Image from "next/image";
+import Link from "next/link";
+import { Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { getAllMapMarkers } from "@/lib/queries/reports";
+import { HomeMapClient } from "@/components/map/home-map-client";
 
-export default function Home() {
+export default async function HomePage() {
+  const markers = await getAllMapMarkers();
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="relative h-[calc(100vh-3.5rem-4rem)] md:h-[calc(100vh-3.5rem)]">
+      <HomeMapClient markers={markers} />
+
+      {/* Floating Action Button */}
+      <Link
+        href="/reports/new"
+        className="absolute bottom-6 right-6 z-[999] md:bottom-8 md:right-8 group"
+      >
+        {/* Pulse ring */}
+        <span className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-30 md:hidden" />
+        <Button
+          size="lg"
+          className="relative h-16 w-16 rounded-full bg-emerald-600 shadow-xl hover:bg-emerald-700 hover:shadow-2xl hover:scale-110 transition-all duration-200 md:h-auto md:w-auto md:rounded-lg md:px-6 md:animate-none animate-bounce"
+        >
+          <Plus className="h-7 w-7 md:mr-2 md:h-5 md:w-5" />
+          <span className="hidden md:inline">Report Waste</span>
+        </Button>
+      </Link>
+
+      {/* Map Legend */}
+      <div className="absolute bottom-6 left-4 z-[999] hidden rounded-lg border bg-white/95 p-3 shadow-sm backdrop-blur md:block">
+        <p className="mb-2 text-xs font-semibold text-stone-700">Severity</p>
+        <div className="space-y-1">
+          {[
+            { label: "Low", color: "#22c55e" },
+            { label: "Medium", color: "#eab308" },
+            { label: "High", color: "#f97316" },
+            { label: "Critical", color: "#ef4444" },
+            { label: "Resolved", color: "#9ca3af" },
+          ].map(({ label, color }) => (
+            <div key={label} className="flex items-center gap-2">
+              <span
+                className="h-3 w-3 rounded-full"
+                style={{ backgroundColor: color }}
+              />
+              <span className="text-xs text-stone-600">{label}</span>
+            </div>
+          ))}
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      </div>
     </div>
   );
 }
