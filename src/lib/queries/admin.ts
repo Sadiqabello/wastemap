@@ -215,16 +215,18 @@ export async function getAllUsers(
   let emailMap: Record<string, string> = {};
   try {
     const adminClient = createAdminClient();
-    const { data: authUsers } = await adminClient.auth.admin.listUsers({
-      perPage: 1000,
-    });
-    if (authUsers?.users) {
-      emailMap = Object.fromEntries(
-        authUsers.users.map((u) => [u.id, u.email ?? ""])
-      );
+    // Fetch emails for only the users on this page
+    const userIds = profiles.map((p) => p.id);
+    const results = await Promise.all(
+      userIds.map((id) => adminClient.auth.admin.getUserById(id))
+    );
+    for (const result of results) {
+      if (result.data?.user) {
+        emailMap[result.data.user.id] = result.data.user.email ?? "";
+      }
     }
-  } catch {
-    console.error("Failed to fetch auth users (service role key may be missing)");
+  } catch (err) {
+    console.error("Failed to fetch auth users:", err);
   }
 
   const users: ProfileWithEmail[] = profiles.map((p) => {

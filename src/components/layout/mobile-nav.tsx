@@ -3,14 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/providers/auth-provider";
-import { MapPin, BarChart3, Plus, User, CalendarDays, Trophy } from "lucide-react";
+import { MapPin, BarChart3, Plus, User, Gift, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/", label: "Map", icon: MapPin },
   { href: "/dashboard", label: "Stats", icon: BarChart3 },
   { href: "/reports/new", label: "Report", icon: Plus, requiresAuth: true },
-  { href: "/events", label: "Events", icon: CalendarDays },
+  { href: "/rewards", label: "Rewards", icon: Gift, requiresAuth: true },
   { href: "/leaderboard", label: "Rank", icon: Trophy },
   { href: "/profile", label: "Profile", icon: User, requiresAuth: true },
 ];

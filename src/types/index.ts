@@ -11,18 +11,29 @@ export type PointTransaction =
 export type Event = Database["public"]["Tables"]["events"]["Row"];
 export type EventAttendee =
   Database["public"]["Tables"]["event_attendees"]["Row"];
+export type Reward = Database["public"]["Tables"]["rewards"]["Row"];
+export type Redemption = Database["public"]["Tables"]["redemptions"]["Row"];
+export type Referral = Database["public"]["Tables"]["referrals"]["Row"];
+export type Challenge = Database["public"]["Tables"]["challenges"]["Row"];
+export type UserChallenge =
+  Database["public"]["Tables"]["user_challenges"]["Row"];
 
 // Insert types
 export type ReportInsert = Database["public"]["Tables"]["reports"]["Insert"];
 export type StatusUpdateInsert =
   Database["public"]["Tables"]["status_updates"]["Insert"];
 export type EventInsert = Database["public"]["Tables"]["events"]["Insert"];
+export type RewardInsert = Database["public"]["Tables"]["rewards"]["Insert"];
 
 // Enums
 export type WasteCategory = Database["public"]["Enums"]["waste_category"];
 export type SeverityLevel = Database["public"]["Enums"]["severity_level"];
 export type ReportStatus = Database["public"]["Enums"]["report_status"];
 export type EventStatus = Database["public"]["Enums"]["event_status"];
+export type RewardCategory = Database["public"]["Enums"]["reward_category"];
+export type RedemptionStatus = Database["public"]["Enums"]["redemption_status"];
+export type ReferralStatus = Database["public"]["Enums"]["referral_status"];
+export type UserTier = Database["public"]["Enums"]["user_tier"];
 
 // Joined types
 export type ReportWithProfile = Report & {
@@ -83,6 +94,7 @@ export interface LeaderboardEntry {
   avatar_url: string | null;
   points: number;
   rank: number;
+  tier?: UserTier;
   report_count?: number;
   event_count?: number;
 }
@@ -113,3 +125,23 @@ export interface AdminEventEntry extends Event {
   profiles: Pick<Profile, "full_name" | "avatar_url">;
   attendee_count: number;
 }
+
+// Rewards
+export type RewardWithRedemptionCount = Reward & {
+  redemption_count: number;
+};
+
+export type RedemptionWithReward = Redemption & {
+  rewards: Pick<Reward, "name" | "category" | "image_url"> | null;
+};
+
+// Referrals
+export type ReferralWithProfile = Referral & {
+  profiles: Pick<Profile, "full_name" | "avatar_url">;
+};
+
+// Challenges
+export type ChallengeWithProgress = Challenge & {
+  user_progress: number;
+  user_completed: boolean;
+};

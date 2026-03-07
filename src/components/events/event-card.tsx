@@ -40,6 +40,11 @@ export function EventCard({ event }: EventCardProps) {
                 <Badge className={`border-0 text-[10px] ${STATUS_STYLES[event.status]}`}>
                   {STATUS_LABELS[event.status]}
                 </Badge>
+                {event.is_live && (
+                  <Badge className="bg-red-500 text-white border-0 animate-pulse text-[10px]">
+                    LIVE
+                  </Badge>
+                )}
               </div>
               <h3 className="truncate font-semibold text-stone-900">
                 {event.title}

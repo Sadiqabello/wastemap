@@ -3,6 +3,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getReportsByUserId } from "@/lib/queries/reports";
 import { getUserRank } from "@/lib/queries/leaderboard";
+import { getUserRedemptions } from "@/lib/queries/rewards";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/reports/status-badge";
@@ -11,7 +12,10 @@ import { Badge } from "@/components/ui/badge";
 import { AvatarUploader } from "@/components/profile/avatar-uploader";
 import { EditNameForm } from "@/components/profile/edit-name-form";
 import { ChangePasswordForm } from "@/components/profile/change-password-form";
-import { Plus, FileText, Star, Trophy, Mail, Shield, Calendar } from "lucide-react";
+import { TierProgress } from "@/components/tier/tier-progress";
+import { TierBadge } from "@/components/tier/tier-badge";
+import { RedemptionHistory } from "@/components/rewards/redemption-history";
+import { Plus, FileText, Star, Trophy, Mail, Shield, Calendar, Gift, Users } from "lucide-react";
 import type { Profile } from "@/types";
 
 export default async function ProfilePage() {
@@ -31,8 +35,11 @@ export default async function ProfilePage() {
     .single();
 
   const profile = profileData as Profile | null;
-  const reports = await getReportsByUserId(user.id);
-  const rankData = await getUserRank(user.id);
+  const [reports, rankData, redemptions] = await Promise.all([
+    getReportsByUserId(user.id),
+    getUserRank(user.id),
+    getUserRedemptions(user.id, 5),
+  ]);
 
   const initials = profile?.full_name
     ? profile.full_name
@@ -112,6 +119,56 @@ export default async function ProfilePage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Tier Progress */}
+      {profile && (
+        <Card className="mb-6">
+          <CardContent className="pt-4 pb-4">
+            <TierProgress tier={profile.tier} points={profile.points} />
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Quick Links */}
+      <div className="grid grid-cols-3 gap-3 mb-6">
+        <Link href="/rewards">
+          <Card className="transition-colors hover:bg-emerald-50">
+            <CardContent className="flex flex-col items-center py-4">
+              <Gift className="h-5 w-5 text-emerald-600 mb-1" />
+              <p className="text-xs font-medium text-stone-700">Rewards</p>
+            </CardContent>
+          </Card>
+        </Link>
+        <Link href="/referrals">
+          <Card className="transition-colors hover:bg-blue-50">
+            <CardContent className="flex flex-col items-center py-4">
+              <Users className="h-5 w-5 text-blue-600 mb-1" />
+              <p className="text-xs font-medium text-stone-700">Referrals</p>
+            </CardContent>
+          </Card>
+        </Link>
+        <Link href="/challenges">
+          <Card className="transition-colors hover:bg-amber-50">
+            <CardContent className="flex flex-col items-center py-4">
+              <Trophy className="h-5 w-5 text-amber-600 mb-1" />
+              <p className="text-xs font-medium text-stone-700">Challenges</p>
+            </CardContent>
+          </Card>
+        </Link>
+      </div>
+
+      {/* Recent Redemptions */}
+      {redemptions.length > 0 && (
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-semibold text-stone-900">Recent Redemptions</h2>
+            <Link href="/rewards" className="text-xs text-emerald-600 hover:underline">
+              View all
+            </Link>
+          </div>
+          <RedemptionHistory redemptions={redemptions} />
+        </div>
+      )}
 
       {/* Settings Section */}
       <div className="mb-6">

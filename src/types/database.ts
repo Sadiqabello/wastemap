@@ -16,6 +16,10 @@ export type Database = {
           avatar_url: string | null;
           role: "reporter" | "authority" | "admin";
           points: number;
+          tier: Database["public"]["Enums"]["user_tier"];
+          referral_code: string | null;
+          referred_by: string | null;
+          phone_number: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -25,6 +29,10 @@ export type Database = {
           avatar_url?: string | null;
           role?: "reporter" | "authority" | "admin";
           points?: number;
+          tier?: Database["public"]["Enums"]["user_tier"];
+          referral_code?: string | null;
+          referred_by?: string | null;
+          phone_number?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -34,6 +42,10 @@ export type Database = {
           avatar_url?: string | null;
           role?: "reporter" | "authority" | "admin";
           points?: number;
+          tier?: Database["public"]["Enums"]["user_tier"];
+          referral_code?: string | null;
+          referred_by?: string | null;
+          phone_number?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -260,6 +272,7 @@ export type Database = {
           tools_needed: string | null;
           status: Database["public"]["Enums"]["event_status"];
           photo_urls: string[];
+          is_live: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -280,6 +293,7 @@ export type Database = {
           tools_needed?: string | null;
           status?: Database["public"]["Enums"]["event_status"];
           photo_urls?: string[];
+          is_live?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -300,6 +314,7 @@ export type Database = {
           tools_needed?: string | null;
           status?: Database["public"]["Enums"]["event_status"];
           photo_urls?: string[];
+          is_live?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -345,6 +360,225 @@ export type Database = {
             columns: ["user_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      rewards: {
+        Row: {
+          id: string;
+          name: string;
+          description: string | null;
+          category: Database["public"]["Enums"]["reward_category"];
+          point_cost: number;
+          provider: string;
+          provider_config: Record<string, unknown>;
+          is_active: boolean;
+          stock: number | null;
+          tier_required: Database["public"]["Enums"]["user_tier"] | null;
+          image_url: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          description?: string | null;
+          category: Database["public"]["Enums"]["reward_category"];
+          point_cost: number;
+          provider?: string;
+          provider_config?: Record<string, unknown>;
+          is_active?: boolean;
+          stock?: number | null;
+          tier_required?: Database["public"]["Enums"]["user_tier"] | null;
+          image_url?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          description?: string | null;
+          category?: Database["public"]["Enums"]["reward_category"];
+          point_cost?: number;
+          provider?: string;
+          provider_config?: Record<string, unknown>;
+          is_active?: boolean;
+          stock?: number | null;
+          tier_required?: Database["public"]["Enums"]["user_tier"] | null;
+          image_url?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      redemptions: {
+        Row: {
+          id: string;
+          user_id: string;
+          reward_id: string | null;
+          points_spent: number;
+          status: Database["public"]["Enums"]["redemption_status"];
+          provider_reference: string | null;
+          delivery_details: Record<string, unknown>;
+          failure_reason: string | null;
+          created_at: string;
+          completed_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          reward_id?: string | null;
+          points_spent: number;
+          status?: Database["public"]["Enums"]["redemption_status"];
+          provider_reference?: string | null;
+          delivery_details?: Record<string, unknown>;
+          failure_reason?: string | null;
+          created_at?: string;
+          completed_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          reward_id?: string;
+          points_spent?: number;
+          status?: Database["public"]["Enums"]["redemption_status"];
+          provider_reference?: string | null;
+          delivery_details?: Record<string, unknown>;
+          failure_reason?: string | null;
+          created_at?: string;
+          completed_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "redemptions_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "redemptions_reward_id_fkey";
+            columns: ["reward_id"];
+            isOneToOne: false;
+            referencedRelation: "rewards";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      referrals: {
+        Row: {
+          id: string;
+          referrer_id: string;
+          referred_id: string;
+          status: Database["public"]["Enums"]["referral_status"];
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          referrer_id: string;
+          referred_id: string;
+          status?: Database["public"]["Enums"]["referral_status"];
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          referrer_id?: string;
+          referred_id?: string;
+          status?: Database["public"]["Enums"]["referral_status"];
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "referrals_referrer_id_fkey";
+            columns: ["referrer_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "referrals_referred_id_fkey";
+            columns: ["referred_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      challenges: {
+        Row: {
+          id: string;
+          title: string;
+          description: string | null;
+          action_type: string;
+          target_count: number;
+          bonus_points: number;
+          start_date: string;
+          end_date: string;
+          is_active: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          description?: string | null;
+          action_type: string;
+          target_count: number;
+          bonus_points: number;
+          start_date: string;
+          end_date: string;
+          is_active?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          title?: string;
+          description?: string | null;
+          action_type?: string;
+          target_count?: number;
+          bonus_points?: number;
+          start_date?: string;
+          end_date?: string;
+          is_active?: boolean;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      user_challenges: {
+        Row: {
+          user_id: string;
+          challenge_id: string;
+          progress: number;
+          completed: boolean;
+          completed_at: string | null;
+        };
+        Insert: {
+          user_id: string;
+          challenge_id: string;
+          progress?: number;
+          completed?: boolean;
+          completed_at?: string | null;
+        };
+        Update: {
+          user_id?: string;
+          challenge_id?: string;
+          progress?: number;
+          completed?: boolean;
+          completed_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "user_challenges_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "user_challenges_challenge_id_fkey";
+            columns: ["challenge_id"];
+            isOneToOne: false;
+            referencedRelation: "challenges";
             referencedColumns: ["id"];
           },
         ];
@@ -396,6 +630,26 @@ export type Database = {
         };
         Returns: undefined;
       };
+      redeem_reward: {
+        Args: {
+          p_user_id: string;
+          p_reward_id: string;
+          p_delivery_details: Record<string, unknown>;
+        };
+        Returns: string;
+      };
+      update_user_tier: {
+        Args: {
+          p_user_id: string;
+        };
+        Returns: Database["public"]["Enums"]["user_tier"];
+      };
+      generate_referral_code: {
+        Args: {
+          p_user_id: string;
+        };
+        Returns: string;
+      };
     };
     Enums: {
       waste_category:
@@ -415,6 +669,25 @@ export type Database = {
         | "in_progress"
         | "resolved";
       event_status: "upcoming" | "in_progress" | "completed" | "cancelled";
+      reward_category:
+        | "airtime"
+        | "data"
+        | "bank_transfer"
+        | "gift_card"
+        | "utility"
+        | "merchandise";
+      redemption_status:
+        | "pending"
+        | "processing"
+        | "completed"
+        | "failed"
+        | "refunded";
+      referral_status: "signed_up" | "first_report" | "first_event";
+      user_tier:
+        | "green_starter"
+        | "eco_warrior"
+        | "clean_champion"
+        | "waste_hero";
     };
     CompositeTypes: Record<string, never>;
   };

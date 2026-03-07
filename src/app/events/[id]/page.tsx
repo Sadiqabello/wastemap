@@ -18,6 +18,7 @@ import { MapContainer } from "@/components/map/map-container";
 import { AttendeeList } from "@/components/events/attendee-list";
 import { JoinButton } from "@/components/events/join-button";
 import { CompleteEventButton } from "@/components/events/complete-event-button";
+import { LiveStream } from "@/components/events/live-stream";
 
 const STATUS_STYLES = {
   upcoming: "bg-blue-100 text-blue-700",
@@ -60,6 +61,16 @@ export default async function EventDetailPage({
     event.status !== "completed" &&
     event.status !== "cancelled";
 
+  let userName = "Attendee";
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("full_name")
+      .eq("id", user.id)
+      .single();
+    if (profile?.full_name) userName = profile.full_name;
+  }
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
       <Link href="/events">
@@ -73,9 +84,16 @@ export default async function EventDetailPage({
         {/* Main content */}
         <div className="space-y-6 lg:col-span-2">
           <div>
-            <Badge className={`border-0 mb-2 ${STATUS_STYLES[event.status]}`}>
-              {STATUS_LABELS[event.status]}
-            </Badge>
+            <div className="flex items-center gap-2 mb-2">
+              <Badge className={`border-0 ${STATUS_STYLES[event.status]}`}>
+                {STATUS_LABELS[event.status]}
+              </Badge>
+              {event.is_live && (
+                <Badge className="bg-red-500 text-white border-0 animate-pulse">
+                  LIVE
+                </Badge>
+              )}
+            </div>
             <h1 className="text-2xl font-bold text-stone-900">
               {event.title}
             </h1>
@@ -171,6 +189,17 @@ export default async function EventDetailPage({
 
         {/* Sidebar */}
         <div className="space-y-6">
+          {/* Live Stream */}
+          {user && (isOrganizer || event.is_live) && (
+            <LiveStream
+              eventId={event.id}
+              eventTitle={event.title}
+              isLive={event.is_live}
+              isOrganizer={isOrganizer}
+              userName={userName}
+            />
+          )}
+
           {/* RSVP */}
           {user && event.status === "upcoming" && (
             <Card>

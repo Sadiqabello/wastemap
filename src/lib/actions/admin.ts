@@ -2,14 +2,17 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createServiceClient } from "@supabase/supabase-js";
 import {
   changeRoleSchema,
   adjustPointsSchema,
   bulkUpdateStatusSchema,
   updateEventStatusSchema,
   deleteItemSchema,
+  createUserSchema,
 } from "@/lib/validators/admin";
 import { awardPoints } from "@/lib/actions/points";
+import type { Database } from "@/types/database";
 
 async function assertAdmin() {
   const supabase = await createClient();
@@ -41,16 +44,25 @@ export async function changeUserRole(userId: string, newRole: string) {
   const parsed = changeRoleSchema.safeParse({ userId, newRole });
   if (!parsed.success) return { error: "Invalid input." };
 
-  const { supabase } = await assertAdmin();
+  await assertAdmin();
 
-  const { error } = await supabase
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceKey) {
+    return { error: "Server configuration missing. SUPABASE_SERVICE_ROLE_KEY is required." };
+  }
+
+  const adminClient = createServiceClient<Database>(supabaseUrl, serviceKey);
+
+  const { error } = await adminClient
     .from("profiles")
     .update({ role: parsed.data.newRole })
     .eq("id", parsed.data.userId);
 
   if (error) {
     console.error("Error changing role:", error);
-    return { error: "Failed to change role." };
+    return { error: `Failed to change role: ${error.message}` };
   }
 
   revalidateAdmin();
@@ -65,17 +77,53 @@ export async function adjustUserPoints(
   const parsed = adjustPointsSchema.safeParse({ userId, points, reason });
   if (!parsed.success) return { error: "Invalid input." };
 
-  const { supabase } = await assertAdmin();
+  await assertAdmin();
 
-  const { error } = await supabase.rpc("admin_adjust_points", {
-    p_user_id: parsed.data.userId,
-    p_points: parsed.data.points,
-    p_reason: parsed.data.reason,
-  });
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  if (error) {
-    console.error("Error adjusting points:", error);
-    return { error: "Failed to adjust points." };
+  if (!supabaseUrl || !serviceKey) {
+    return { error: "Server configuration missing. SUPABASE_SERVICE_ROLE_KEY is required." };
+  }
+
+  const adminClient = createServiceClient<Database>(supabaseUrl, serviceKey);
+
+  // Insert point transaction record
+  const { error: txError } = await adminClient
+    .from("point_transactions")
+    .insert({
+      user_id: parsed.data.userId,
+      action: parsed.data.reason,
+      points: parsed.data.points,
+    });
+
+  if (txError) {
+    console.error("Error inserting point transaction:", txError);
+    return { error: `Failed to adjust points: ${txError.message}` };
+  }
+
+  // Get current points and update
+  const { data: profile, error: fetchError } = await adminClient
+    .from("profiles")
+    .select("points")
+    .eq("id", parsed.data.userId)
+    .single();
+
+  if (fetchError || !profile) {
+    console.error("Error fetching profile:", fetchError);
+    return { error: "Failed to fetch user profile." };
+  }
+
+  const newPoints = profile.points + parsed.data.points;
+
+  const { error: updateError } = await adminClient
+    .from("profiles")
+    .update({ points: newPoints })
+    .eq("id", parsed.data.userId);
+
+  if (updateError) {
+    console.error("Error updating points:", updateError);
+    return { error: `Failed to update points: ${updateError.message}` };
   }
 
   revalidateAdmin();
@@ -233,5 +281,68 @@ export async function adminDeleteEvent(eventId: string) {
 
   revalidateAdmin();
   revalidatePath("/events");
+  return { success: true };
+}
+
+export async function adminCreateUser(
+  email: string,
+  password: string,
+  fullName: string,
+  role: string
+) {
+  const parsed = createUserSchema.safeParse({ email, password, fullName, role });
+  if (!parsed.success) {
+    const fieldErrors = parsed.error.flatten().fieldErrors;
+    const firstError = Object.values(fieldErrors).flat()[0];
+    return { error: firstError || "Invalid input." };
+  }
+
+  // Verify caller is admin
+  await assertAdmin();
+
+  // Use service role client to create the user via Supabase Auth Admin API
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceKey) {
+    return { error: "Server configuration missing. SUPABASE_SERVICE_ROLE_KEY is required." };
+  }
+
+  const adminClient = createServiceClient<Database>(supabaseUrl, serviceKey);
+
+  // Create the auth user
+  const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
+    email: parsed.data.email,
+    password: parsed.data.password,
+    email_confirm: true,
+    user_metadata: { full_name: parsed.data.fullName },
+  });
+
+  if (authError) {
+    console.error("Error creating user:", authError);
+    if (authError.message?.includes("already been registered")) {
+      return { error: "A user with this email already exists." };
+    }
+    return { error: authError.message || "Failed to create user." };
+  }
+
+  if (!authData.user) {
+    return { error: "Failed to create user." };
+  }
+
+  // Update the profile role (the trigger should have created the profile)
+  // Wait briefly for the trigger to fire, then update role
+  const { error: roleError } = await adminClient
+    .from("profiles")
+    .update({ role: parsed.data.role })
+    .eq("id", authData.user.id);
+
+  if (roleError) {
+    console.error("Error setting user role:", roleError);
+    // User was created but role update failed — try to set it
+    return { error: "User created but role assignment failed. Please change the role manually." };
+  }
+
+  revalidateAdmin();
   return { success: true };
 }

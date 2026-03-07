@@ -1,7 +1,9 @@
 "use client";
 
+import { toast } from "sonner";
 import { MapContainer } from "./map-container";
 import { useGeolocation } from "@/hooks/use-geolocation";
+import { isWithinNigeria } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Crosshair, Loader2 } from "lucide-react";
 
@@ -13,12 +15,25 @@ interface LocationPickerProps {
 export function LocationPicker({ value, onChange }: LocationPickerProps) {
   const { loading, getLocation } = useGeolocation();
 
+  const handleLocationSelect = (lat: number, lng: number) => {
+    if (!isWithinNigeria(lat, lng)) {
+      toast.error("Location must be within Nigeria");
+      return;
+    }
+    onChange(lat, lng);
+  };
+
   const handleUseMyLocation = () => {
     if (!navigator.geolocation) return;
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        onChange(position.coords.latitude, position.coords.longitude);
+        const { latitude, longitude } = position.coords;
+        if (!isWithinNigeria(latitude, longitude)) {
+          toast.error("Your location is outside Nigeria. Please select a location on the map.");
+          return;
+        }
+        onChange(latitude, longitude);
       },
       () => {
         // Error handled silently — user can still pick manually
@@ -50,7 +65,7 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
       </div>
       <div className="h-[300px] overflow-hidden rounded-lg border">
         <MapContainer
-          onLocationSelect={onChange}
+          onLocationSelect={handleLocationSelect}
           selectedLocation={value}
           center={value || undefined}
           zoom={value ? 15 : undefined}
@@ -62,7 +77,7 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
         </p>
       ) : (
         <p className="text-xs text-stone-500">
-          Click on the map to select a location
+          Click on the map to select a location within Nigeria
         </p>
       )}
     </div>

@@ -20,8 +20,8 @@ export const reportSchema = z.object({
     "other",
   ]),
   severity: z.enum(["low", "medium", "high", "critical"]),
-  latitude: z.number().min(-90).max(90),
-  longitude: z.number().min(-180).max(180),
+  latitude: z.number().min(4.27, "Location must be within Nigeria").max(13.89, "Location must be within Nigeria"),
+  longitude: z.number().min(2.67, "Location must be within Nigeria").max(14.68, "Location must be within Nigeria"),
   address: z.string().optional(),
 });
 

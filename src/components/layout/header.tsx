@@ -13,15 +13,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MapPin, Plus, User, LogOut, Trophy, Star, Shield } from "lucide-react";
+import { MapPin, Plus, User, LogOut, Trophy, Star, Shield, Gift, Users, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
   { href: "/", label: "Map" },
   { href: "/dashboard", label: "Dashboard" },
   { href: "/events", label: "Events" },
+  { href: "/rewards", label: "Rewards" },
   { href: "/leaderboard", label: "Leaderboard" },
-  { href: "/tips", label: "Tips" },
 ];
 
 export function Header() {
@@ -123,6 +123,24 @@ export function Header() {
                     <Link href="/profile" className="cursor-pointer">
                       <User className="mr-2 h-4 w-4" />
                       Profile
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/rewards" className="cursor-pointer">
+                      <Gift className="mr-2 h-4 w-4" />
+                      Rewards
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/referrals" className="cursor-pointer">
+                      <Users className="mr-2 h-4 w-4" />
+                      Referrals
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/challenges" className="cursor-pointer">
+                      <Target className="mr-2 h-4 w-4" />
+                      Challenges
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>

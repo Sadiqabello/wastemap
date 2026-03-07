@@ -30,3 +30,10 @@ export const updateEventStatusSchema = z.object({
 export const deleteItemSchema = z.object({
   id: z.string().uuid(),
 });
+
+export const createUserSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  fullName: z.string().min(2, "Name must be at least 2 characters").max(100),
+  role: z.enum(["reporter", "authority", "admin"]),
+});

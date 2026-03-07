@@ -386,3 +386,47 @@ INSERT INTO public.point_transactions (user_id, action, points, created_at) VALU
 -- Ngozi
 ('a0000000-0000-0000-0000-000000000008', 'report_created', 10, now() - interval '1 day'),
 ('a0000000-0000-0000-0000-000000000008', 'report_created', 10, now() - interval '12 hours');
+
+-- ============================================
+-- 7. REWARDS CATALOG
+-- ============================================
+
+INSERT INTO public.rewards (id, name, description, category, point_cost, provider, is_active, stock, tier_required)
+VALUES
+  ('b0000000-0000-0000-0000-000000000001', 'MTN N100 Airtime', 'Get N100 MTN airtime top-up', 'airtime', 100, 'vtpass', true, NULL, NULL),
+  ('b0000000-0000-0000-0000-000000000002', 'Airtel N200 Airtime', 'Get N200 Airtel airtime top-up', 'airtime', 200, 'vtpass', true, NULL, NULL),
+  ('b0000000-0000-0000-0000-000000000003', 'MTN 500MB Data', 'Get 500MB MTN data bundle', 'data', 200, 'vtpass', true, NULL, NULL),
+  ('b0000000-0000-0000-0000-000000000004', 'MTN 1GB Data', 'Get 1GB MTN data bundle', 'data', 400, 'vtpass', true, NULL, NULL),
+  ('b0000000-0000-0000-0000-000000000005', 'Glo 2GB Data', 'Get 2GB Glo data bundle', 'data', 700, 'vtpass', true, NULL, 'eco_warrior'),
+  ('b0000000-0000-0000-0000-000000000006', 'N500 Bank Transfer', 'Get N500 transferred to your bank account', 'bank_transfer', 500, 'paystack', true, NULL, 'eco_warrior'),
+  ('b0000000-0000-0000-0000-000000000007', 'N1000 Bank Transfer', 'Get N1000 transferred to your bank account', 'bank_transfer', 1000, 'paystack', true, NULL, 'clean_champion'),
+  ('b0000000-0000-0000-0000-000000000008', 'N2000 Jumia Gift Card', 'Get a N2000 Jumia shopping voucher', 'gift_card', 2000, 'manual', true, 50, 'clean_champion'),
+  ('b0000000-0000-0000-0000-000000000009', 'WasteMap T-Shirt', 'Official WasteMap branded t-shirt', 'merchandise', 1500, 'manual', true, 20, 'eco_warrior'),
+  ('b0000000-0000-0000-0000-000000000010', 'N500 Electricity Bill', 'Pay N500 towards your electricity bill', 'utility', 500, 'vtpass', true, NULL, NULL);
+
+-- ============================================
+-- 8. CHALLENGES
+-- ============================================
+
+INSERT INTO public.challenges (id, title, description, action_type, target_count, bonus_points, start_date, end_date, is_active)
+VALUES
+  ('c0000000-0000-0000-0000-000000000001', 'Weekly Reporter', 'Submit 5 waste reports this week', 'report_created', 5, 50, CURRENT_DATE - interval '1 day', CURRENT_DATE + interval '6 days', true),
+  ('c0000000-0000-0000-0000-000000000002', 'Photo Documenter', 'Upload photos with 3 reports', 'photos_uploaded', 3, 30, CURRENT_DATE - interval '1 day', CURRENT_DATE + interval '13 days', true),
+  ('c0000000-0000-0000-0000-000000000003', 'Community Organizer', 'Create a cleanup event', 'event_created', 1, 25, CURRENT_DATE - interval '1 day', CURRENT_DATE + interval '29 days', true),
+  ('c0000000-0000-0000-0000-000000000004', 'Event Goer', 'Attend 2 cleanup events', 'event_attended', 2, 40, CURRENT_DATE - interval '1 day', CURRENT_DATE + interval '29 days', true),
+  ('c0000000-0000-0000-0000-000000000005', 'Upvote Champion', 'Upvote 10 reports from other users', 'upvoted_report', 10, 20, CURRENT_DATE - interval '1 day', CURRENT_DATE + interval '6 days', true);
+
+-- ============================================
+-- 9. REFERRAL CODES FOR DEMO USERS
+-- ============================================
+
+UPDATE public.profiles SET referral_code = 'ADMIN001' WHERE id = 'a0000000-0000-0000-0000-000000000001';
+UPDATE public.profiles SET referral_code = 'AUTH0002' WHERE id = 'a0000000-0000-0000-0000-000000000002';
+UPDATE public.profiles SET referral_code = 'CHIDI003' WHERE id = 'a0000000-0000-0000-0000-000000000003';
+UPDATE public.profiles SET referral_code = 'AMINA004' WHERE id = 'a0000000-0000-0000-0000-000000000004';
+
+-- ============================================
+-- 10. UPDATE TIERS BASED ON CURRENT POINTS
+-- ============================================
+
+SELECT public.update_user_tier(id) FROM public.profiles;

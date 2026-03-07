@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { eventSchema } from "@/lib/validators/event";
 import { awardPoints } from "@/lib/actions/points";
+import { updateChallengeProgress } from "@/lib/actions/challenges";
+import { trackReferralMilestone } from "@/lib/actions/referrals";
 
 export async function createEvent(formData: FormData) {
   const supabase = await createClient();
@@ -56,6 +58,7 @@ export async function createEvent(formData: FormData) {
 
   // Award points for organizing an event
   await awardPoints(user.id, "event_created", undefined, event.id);
+  updateChallengeProgress(user.id, "event_created").catch(() => {});
 
   revalidatePath("/events");
   revalidatePath("/dashboard");
@@ -106,6 +109,7 @@ export async function joinEvent(eventId: string, status: "going" | "interested")
 
     // Award points for joining an event (first time only, enforced by DB unique constraint)
     await awardPoints(user.id, "event_joined", undefined, eventId);
+    trackReferralMilestone(user.id, "first_event").catch(() => {});
   }
 
   revalidatePath(`/events/${eventId}`);
@@ -132,6 +136,51 @@ export async function leaveEvent(eventId: string) {
 
   revalidatePath(`/events/${eventId}`);
   return { success: true };
+}
+
+export async function toggleLiveStream(eventId: string) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+  if (authError || !user) {
+    return { error: "You must be signed in." };
+  }
+
+  const { data: event } = await supabase
+    .from("events")
+    .select("organizer_id, status, is_live")
+    .eq("id", eventId)
+    .single();
+
+  if (!event) {
+    return { error: "Event not found." };
+  }
+
+  if (event.organizer_id !== user.id) {
+    return { error: "Only the organizer can control the live stream." };
+  }
+
+  if (event.status === "completed" || event.status === "cancelled") {
+    return { error: "Cannot go live on a completed or cancelled event." };
+  }
+
+  const newLiveState = !event.is_live;
+
+  const { error } = await supabase
+    .from("events")
+    .update({ is_live: newLiveState })
+    .eq("id", eventId);
+
+  if (error) {
+    console.error("Error toggling live stream:", error);
+    return { error: "Failed to update live stream status." };
+  }
+
+  revalidatePath(`/events/${eventId}`);
+  return { success: true, is_live: newLiveState };
 }
 
 export async function completeEvent(eventId: string) {
@@ -166,7 +215,7 @@ export async function completeEvent(eventId: string) {
 
   const { error } = await supabase
     .from("events")
-    .update({ status: "completed" })
+    .update({ status: "completed", is_live: false })
     .eq("id", eventId);
 
   if (error) {
@@ -186,9 +235,10 @@ export async function completeEvent(eventId: string) {
 
   if (attendees) {
     await Promise.all(
-      attendees.map((a) =>
-        awardPoints(a.user_id, "event_attended", undefined, eventId)
-      )
+      attendees.map(async (a) => {
+        await awardPoints(a.user_id, "event_attended", undefined, eventId);
+        updateChallengeProgress(a.user_id, "event_attended").catch(() => {});
+      })
     );
   }
 

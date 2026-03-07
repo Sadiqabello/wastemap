@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { reportSchema } from "@/lib/validators/report";
 import { awardPoints } from "@/lib/actions/points";
+import { updateChallengeProgress } from "@/lib/actions/challenges";
+import { trackReferralMilestone } from "@/lib/actions/referrals";
 import type { ReportStatus } from "@/types";
 
 export async function createReport(formData: FormData) {
@@ -55,7 +57,12 @@ export async function createReport(formData: FormData) {
   // Award bonus points for including photos
   if (photoUrls.length > 0) {
     await awardPoints(user.id, "photos_uploaded", report.id);
+    updateChallengeProgress(user.id, "photos_uploaded").catch(() => {});
   }
+
+  // Track challenge progress and referral milestones
+  updateChallengeProgress(user.id, "report_created").catch(() => {});
+  trackReferralMilestone(user.id, "first_report").catch(() => {});
 
   revalidatePath("/");
   revalidatePath("/dashboard");
@@ -224,6 +231,7 @@ export async function toggleUpvote(reportId: string) {
 
     // Award point for upvoting
     await awardPoints(user.id, "upvoted_report", reportId);
+    updateChallengeProgress(user.id, "upvoted_report").catch(() => {});
   }
 
   revalidatePath(`/reports/${reportId}`);

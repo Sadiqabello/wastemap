@@ -7,6 +7,7 @@ import {
   Users,
   FileText,
   Calendar,
+  Gift,
   Settings,
   ArrowLeft,
   MapPin,
@@ -18,6 +19,7 @@ const sidebarLinks = [
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/reports", label: "Reports", icon: FileText },
   { href: "/admin/events", label: "Events", icon: Calendar },
+  { href: "/admin/rewards", label: "Rewards", icon: Gift },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 

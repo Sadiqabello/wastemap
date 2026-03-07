@@ -16,6 +16,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RoleBadge } from "@/components/admin/role-badge";
 import { ChangeRoleDialog } from "@/components/admin/change-role-dialog";
 import { AdjustPointsDialog } from "@/components/admin/adjust-points-dialog";
+import { AddUserDialog } from "@/components/admin/add-user-dialog";
 import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 
 interface UsersPageProps {
@@ -51,11 +52,14 @@ export default async function AdminUsersPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">User Management</h1>
-        <p className="text-muted-foreground">
-          {total} user{total !== 1 ? "s" : ""} total
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">User Management</h1>
+          <p className="text-muted-foreground">
+            {total} user{total !== 1 ? "s" : ""} total
+          </p>
+        </div>
+        <AddUserDialog />
       </div>
 
       <div className="flex flex-wrap items-center gap-4">

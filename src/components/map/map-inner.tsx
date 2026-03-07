@@ -13,7 +13,7 @@ import {
 import MarkerClusterGroup from "react-leaflet-cluster";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM, SEVERITY_COLORS } from "@/lib/constants";
+import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM, SEVERITY_COLORS, NIGERIA_BOUNDS, isWithinNigeria } from "@/lib/constants";
 import { MapPopup } from "./map-popup";
 import { Crosshair } from "lucide-react";
 import type { MapMarker } from "@/types";
@@ -44,7 +44,9 @@ function LocationSelector({
 }) {
   useMapEvents({
     click(e) {
-      onLocationSelect(e.latlng.lat, e.latlng.lng);
+      if (isWithinNigeria(e.latlng.lat, e.latlng.lng)) {
+        onLocationSelect(e.latlng.lat, e.latlng.lng);
+      }
     },
   });
   return null;
@@ -162,6 +164,9 @@ export default function MapInner({
       zoom={zoom}
       className="h-full w-full"
       zoomControl={true}
+      maxBounds={NIGERIA_BOUNDS}
+      maxBoundsViscosity={1.0}
+      minZoom={6}
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
