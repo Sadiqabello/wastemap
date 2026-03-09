@@ -220,3 +220,83 @@ export async function toggleChallengeActive(challengeId: string, isActive: boole
   revalidatePath("/challenges");
   return { success: true };
 }
+
+export async function editReward(
+  rewardId: string,
+  data: {
+    name?: string;
+    description?: string;
+    category?: string;
+    point_cost?: number;
+    stock?: number | null;
+    tier_required?: string | null;
+    is_active?: boolean;
+  }
+) {
+  await assertAdmin();
+  const adminClient = getAdminClient();
+
+  const { error } = await adminClient
+    .from("rewards")
+    .update(data as Record<string, unknown>)
+    .eq("id", rewardId);
+
+  if (error) {
+    console.error("Error editing reward:", error);
+    return { error: "Failed to update reward." };
+  }
+
+  revalidatePath("/admin/rewards");
+  revalidatePath("/rewards");
+  return { success: true };
+}
+
+export async function deleteChallenge(challengeId: string) {
+  await assertAdmin();
+  const adminClient = getAdminClient();
+
+  const { error } = await adminClient
+    .from("challenges")
+    .delete()
+    .eq("id", challengeId);
+
+  if (error) {
+    console.error("Error deleting challenge:", error);
+    return { error: "Failed to delete challenge." };
+  }
+
+  revalidatePath("/admin/rewards");
+  revalidatePath("/challenges");
+  return { success: true };
+}
+
+export async function editChallenge(
+  challengeId: string,
+  data: {
+    title?: string;
+    description?: string;
+    action_type?: string;
+    target_count?: number;
+    bonus_points?: number;
+    start_date?: string;
+    end_date?: string;
+    is_active?: boolean;
+  }
+) {
+  await assertAdmin();
+  const adminClient = getAdminClient();
+
+  const { error } = await adminClient
+    .from("challenges")
+    .update(data as Record<string, unknown>)
+    .eq("id", challengeId);
+
+  if (error) {
+    console.error("Error editing challenge:", error);
+    return { error: "Failed to update challenge." };
+  }
+
+  revalidatePath("/admin/rewards");
+  revalidatePath("/challenges");
+  return { success: true };
+}

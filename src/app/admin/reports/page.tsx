@@ -16,6 +16,7 @@ import {
 import { ReportStatusDialog } from "@/components/admin/report-status-dialog";
 import { DeleteConfirmDialog } from "@/components/admin/delete-confirm-dialog";
 import { ReportFilters } from "@/components/admin/report-filters";
+import { AdminReportEditButton } from "@/components/admin/admin-report-edit-button";
 import { ReportBulkActions } from "./report-bulk-actions";
 import {
   STATUS_LABELS,
@@ -187,6 +188,14 @@ export default async function AdminReportsPage({
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
+                        <AdminReportEditButton
+                          reportId={report.id}
+                          title={report.title}
+                          category={report.category}
+                          severity={report.severity}
+                          status={report.status}
+                          description={report.description ?? undefined}
+                        />
                         <Link href={`/reports/${report.id}`} target="_blank">
                           <Button variant="ghost" size="sm" className="h-8 gap-1.5">
                             <ExternalLink className="h-3.5 w-3.5" />

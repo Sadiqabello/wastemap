@@ -346,3 +346,187 @@ export async function adminCreateUser(
   revalidateAdmin();
   return { success: true };
 }
+
+export async function adminEditReport(
+  reportId: string,
+  data: {
+    title?: string;
+    category?: string;
+    severity?: string;
+    status?: string;
+    description?: string;
+  }
+) {
+  const parsed = deleteItemSchema.safeParse({ id: reportId });
+  if (!parsed.success) return { error: "Invalid report ID." };
+
+  await assertAdmin();
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceKey) {
+    return { error: "Server configuration missing. SUPABASE_SERVICE_ROLE_KEY is required." };
+  }
+
+  const adminClient = createServiceClient<Database>(supabaseUrl, serviceKey);
+
+  const { error } = await adminClient
+    .from("reports")
+    .update(data as Record<string, unknown>)
+    .eq("id", parsed.data.id);
+
+  if (error) {
+    console.error("Error editing report:", error);
+    return { error: `Failed to edit report: ${error.message}` };
+  }
+
+  revalidateAdmin();
+  revalidatePath("/dashboard");
+  return { success: true };
+}
+
+export async function adminEditUser(
+  userId: string,
+  data: {
+    full_name?: string;
+    email?: string;
+    phone_number?: string;
+  }
+) {
+  const parsed = deleteItemSchema.safeParse({ id: userId });
+  if (!parsed.success) return { error: "Invalid user ID." };
+
+  await assertAdmin();
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceKey) {
+    return { error: "Server configuration missing. SUPABASE_SERVICE_ROLE_KEY is required." };
+  }
+
+  const adminClient = createServiceClient<Database>(supabaseUrl, serviceKey);
+
+  const { error } = await adminClient
+    .from("profiles")
+    .update(data)
+    .eq("id", parsed.data.id);
+
+  if (error) {
+    console.error("Error editing user:", error);
+    return { error: `Failed to edit user: ${error.message}` };
+  }
+
+  revalidateAdmin();
+  return { success: true };
+}
+
+export async function adminDeleteUser(userId: string) {
+  const parsed = deleteItemSchema.safeParse({ id: userId });
+  if (!parsed.success) return { error: "Invalid user ID." };
+
+  await assertAdmin();
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceKey) {
+    return { error: "Server configuration missing. SUPABASE_SERVICE_ROLE_KEY is required." };
+  }
+
+  const adminClient = createServiceClient<Database>(supabaseUrl, serviceKey);
+
+  const { error } = await adminClient.auth.admin.deleteUser(parsed.data.id);
+
+  if (error) {
+    console.error("Error deleting user:", error);
+    return { error: `Failed to delete user: ${error.message}` };
+  }
+
+  revalidateAdmin();
+  return { success: true };
+}
+
+export async function adminCreateEvent(data: {
+  title: string;
+  description: string;
+  event_date: string;
+  start_time?: string;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
+  max_attendees?: number;
+  organizer_id: string;
+}) {
+  await assertAdmin();
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceKey) {
+    return { error: "Server configuration missing. SUPABASE_SERVICE_ROLE_KEY is required." };
+  }
+
+  const adminClient = createServiceClient<Database>(supabaseUrl, serviceKey);
+
+  const { error } = await adminClient.from("events").insert({
+    title: data.title,
+    description: data.description,
+    event_date: data.event_date,
+    start_time: data.start_time || "09:00",
+    address: data.address,
+    latitude: data.latitude || 9.0579,
+    longitude: data.longitude || 7.4951,
+    max_attendees: data.max_attendees,
+    organizer_id: data.organizer_id,
+  });
+
+  if (error) {
+    console.error("Error creating event:", error);
+    return { error: `Failed to create event: ${error.message}` };
+  }
+
+  revalidateAdmin();
+  revalidatePath("/events");
+  return { success: true };
+}
+
+export async function adminEditEvent(
+  eventId: string,
+  data: {
+    title?: string;
+    description?: string;
+    event_date?: string;
+    address?: string;
+    max_attendees?: number | null;
+  }
+) {
+  const parsed = deleteItemSchema.safeParse({ id: eventId });
+  if (!parsed.success) return { error: "Invalid event ID." };
+
+  await assertAdmin();
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceKey) {
+    return { error: "Server configuration missing. SUPABASE_SERVICE_ROLE_KEY is required." };
+  }
+
+  const adminClient = createServiceClient<Database>(supabaseUrl, serviceKey);
+
+  const { error } = await adminClient
+    .from("events")
+    .update(data as Record<string, unknown>)
+    .eq("id", parsed.data.id);
+
+  if (error) {
+    console.error("Error editing event:", error);
+    return { error: `Failed to edit event: ${error.message}` };
+  }
+
+  revalidateAdmin();
+  revalidatePath("/events");
+  return { success: true };
+}

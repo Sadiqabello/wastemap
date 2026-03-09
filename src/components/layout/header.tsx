@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MapPin, Plus, User, LogOut, Trophy, Star, Shield, Gift, Users, Target } from "lucide-react";
+import { MapPin, Plus, User, LogOut, Trophy, Star, Shield, Gift, Users, Target, Award, Crown, Truck, Lightbulb, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
@@ -21,6 +21,9 @@ const navLinks = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/events", label: "Events" },
   { href: "/rewards", label: "Rewards" },
+  { href: "/collectors", label: "Collectors" },
+  { href: "/dump-sites", label: "Dump Sites" },
+  { href: "/challenges", label: "Challenges" },
   { href: "/leaderboard", label: "Leaderboard" },
 ];
 
@@ -49,7 +52,7 @@ export function Header() {
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-600">
             <MapPin className="h-4 w-4 text-white" />
           </div>
-          <span className="text-lg font-bold text-stone-900">WasteMap</span>
+          <span className="text-lg font-bold text-stone-900">WasteMapNaija</span>
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex">
@@ -141,6 +144,36 @@ export function Header() {
                     <Link href="/challenges" className="cursor-pointer">
                       <Target className="mr-2 h-4 w-4" />
                       Challenges
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/achievements" className="cursor-pointer">
+                      <Award className="mr-2 h-4 w-4" />
+                      Achievements
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/collectors" className="cursor-pointer">
+                      <Truck className="mr-2 h-4 w-4" />
+                      Collectors
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/dump-sites" className="cursor-pointer">
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Dump Sites
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/tips" className="cursor-pointer">
+                      <Lightbulb className="mr-2 h-4 w-4" />
+                      Eco Tips
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/premium" className="cursor-pointer">
+                      <Crown className="mr-2 h-4 w-4" />
+                      Premium
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>

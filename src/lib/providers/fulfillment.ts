@@ -128,7 +128,7 @@ async function fulfillVTPass(
   switch (reward.category) {
     case "airtime": {
       const network = config.network || detectNetwork(phone);
-      const amount = config.amount ? Number(config.amount) : reward.point_cost; // default: 1 pt = N1
+      const amount = config.amount ? Number(config.amount) : reward.point_cost; // default: 1 pt = ₦1
       const res = await purchaseAirtime(phone, amount, network);
       return {
         success: res.success,
@@ -180,14 +180,14 @@ async function fulfillPaystack(
   }
 
   const config = (reward.provider_config || {}) as Record<string, string>;
-  const amountNaira = config.amount ? Number(config.amount) : reward.point_cost; // default: 1 pt = N1
+  const amountNaira = config.amount ? Number(config.amount) : reward.point_cost; // default: 1 pt = ₦1
 
   const transferResult = await initiateTransfer(
     accountNumber,
     bankCode,
     resolveResult.accountName!,
     amountNaira,
-    `WasteMap reward: ${reward.name}`
+    `WasteMapNaija reward: ${reward.name}`
   );
 
   if (!transferResult.success) {

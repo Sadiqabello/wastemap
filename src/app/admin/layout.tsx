@@ -4,7 +4,7 @@ import { AdminSidebar } from "@/components/admin/admin-sidebar";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Admin Dashboard - WasteMap",
+  title: "Admin Dashboard - WasteMapNaija",
 };
 
 export default async function AdminLayout({

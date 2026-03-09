@@ -4,7 +4,7 @@ import { useState, useCallback } from "react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { updateAvatarUrl } from "@/lib/actions/profile";
-import imageCompression from "browser-image-compression";
+import { compressImage } from "@/lib/compress-image";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Camera, Loader2 } from "lucide-react";
 
@@ -36,10 +36,11 @@ export function AvatarUploader({
       try {
         let fileToUpload: File | Blob = file;
         try {
-          fileToUpload = await imageCompression(file, {
-            maxSizeMB: 0.5,
-            maxWidthOrHeight: 512,
-            useWebWorker: false,
+          fileToUpload = await compressImage(file, {
+            maxWidth: 512,
+            maxHeight: 512,
+            quality: 0.7,
+            maxSizeKB: 200,
           });
         } catch {
           // Fall back to original file if compression fails

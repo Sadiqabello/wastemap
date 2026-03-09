@@ -3,15 +3,23 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { toggleRewardActive, deleteReward } from "@/lib/actions/admin-rewards";
+import { AdminEditDialog } from "./admin-edit-dialog";
+import { toggleRewardActive, deleteReward, editReward } from "@/lib/actions/admin-rewards";
 import { Power, Trash2, Loader2 } from "lucide-react";
+import { REWARD_CATEGORY_LABELS } from "@/lib/constants";
 
 interface AdminRewardActionsProps {
   rewardId: string;
   isActive: boolean;
+  rewardName?: string;
+  description?: string;
+  category?: string;
+  pointCost?: number;
+  stock?: number | null;
+  tierRequired?: string | null;
 }
 
-export function AdminRewardActions({ rewardId, isActive }: AdminRewardActionsProps) {
+export function AdminRewardActions({ rewardId, isActive, rewardName, description, category, pointCost, stock, tierRequired }: AdminRewardActionsProps) {
   const [loading, setLoading] = useState(false);
 
   async function handleToggle() {
@@ -33,6 +41,23 @@ export function AdminRewardActions({ rewardId, isActive }: AdminRewardActionsPro
 
   return (
     <div className="flex items-center gap-1">
+      {rewardName && (
+        <AdminEditDialog
+          title={`Edit: ${rewardName}`}
+          triggerSize="icon"
+          fields={[
+            { name: "name", label: "Name", defaultValue: rewardName, required: true },
+            { name: "description", label: "Description", type: "textarea", defaultValue: description || "" },
+            {
+              name: "category", label: "Category", type: "select", defaultValue: category,
+              options: Object.entries(REWARD_CATEGORY_LABELS).map(([v, l]) => ({ value: v, label: l })),
+            },
+            { name: "point_cost", label: "Point Cost", type: "number", defaultValue: pointCost },
+            { name: "stock", label: "Stock (empty = unlimited)", type: "number", defaultValue: stock },
+          ]}
+          onSave={async (data) => editReward(rewardId, data as any)}
+        />
+      )}
       <Button
         size="icon"
         variant="ghost"

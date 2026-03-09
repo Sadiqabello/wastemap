@@ -11,6 +11,11 @@ import {
   Settings,
   ArrowLeft,
   MapPin,
+  Truck,
+  Handshake,
+  Leaf,
+  Banknote,
+  Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -20,6 +25,11 @@ const sidebarLinks = [
   { href: "/admin/reports", label: "Reports", icon: FileText },
   { href: "/admin/events", label: "Events", icon: Calendar },
   { href: "/admin/rewards", label: "Rewards", icon: Gift },
+  { href: "/admin/collectors", label: "Collectors", icon: Truck },
+  { href: "/admin/dump-sites", label: "Dump Sites", icon: Trash2 },
+  { href: "/admin/sponsorships", label: "Sponsorships", icon: Handshake },
+  { href: "/admin/carbon", label: "Carbon Impact", icon: Leaf },
+  { href: "/admin/revenue", label: "Revenue", icon: Banknote },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
@@ -37,7 +47,7 @@ export function AdminSidebar() {
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-600">
           <MapPin className="h-4 w-4 text-white" />
         </div>
-        <span className="text-lg font-bold">WasteMap</span>
+        <span className="text-lg font-bold">WasteMapNaija</span>
         <span className="ml-1 rounded bg-emerald-600 px-1.5 py-0.5 text-[10px] font-semibold uppercase">
           Admin
         </span>

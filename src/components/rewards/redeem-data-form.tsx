@@ -140,7 +140,7 @@ export function RedeemDataForm({ userPoints, userPhone }: Props) {
                 <SelectContent className="max-h-60">
                   {affordablePlans.map((p) => (
                     <SelectItem key={p.variation_code} value={p.variation_code}>
-                      {p.name} — N{p.variation_amount} ({Math.ceil(Number(p.variation_amount))} pts)
+                      {p.name} — ₦{p.variation_amount} ({Math.ceil(Number(p.variation_amount))} pts)
                     </SelectItem>
                   ))}
                 </SelectContent>

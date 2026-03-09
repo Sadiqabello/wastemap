@@ -2,8 +2,8 @@
 
 import { useState, useCallback, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { compressImage } from "@/lib/compress-image";
 import { toast } from "sonner";
-import imageCompression from "browser-image-compression";
 import { Upload, X, Loader2, ImageIcon } from "lucide-react";
 import Image from "next/image";
 
@@ -21,7 +21,7 @@ export function PhotoUploader({
   maxPhotos = 4,
 }: PhotoUploaderProps) {
   const [uploading, setUploading] = useState(false);
-  // Use a ref for the latest value to avoid stale closures during async upload
+  const [progress, setProgress] = useState("");
   const valueRef = useRef(value);
   valueRef.current = value;
 
@@ -38,46 +38,49 @@ export function PhotoUploader({
 
       const filesToUpload = Array.from(files).slice(0, remaining);
       setUploading(true);
+      setProgress(`Compressing ${filesToUpload.length} photo${filesToUpload.length > 1 ? "s" : ""}...`);
 
       const supabase = createClient();
 
       try {
-        const uploadedUrls: string[] = [];
+        // Compress all images in parallel
+        const compressed = await Promise.all(
+          filesToUpload.map(async (file, i) => {
+            try {
+              const blob = await compressImage(file);
+              return { blob, name: file.name, index: i };
+            } catch {
+              return { blob: file as Blob, name: file.name, index: i };
+            }
+          })
+        );
 
-        for (const file of filesToUpload) {
-          let fileToUpload: File | Blob = file;
+        setProgress(`Uploading ${compressed.length} photo${compressed.length > 1 ? "s" : ""}...`);
 
-          // Compress image — useWebWorker disabled to avoid hanging in Next.js
-          try {
-            fileToUpload = await imageCompression(file, {
-              maxSizeMB: 1,
-              maxWidthOrHeight: 1920,
-              useWebWorker: false,
-            });
-          } catch (compressionError) {
-            console.error("Compression failed, using original:", compressionError);
-            // Fall back to original file if compression fails
-          }
+        // Upload all in parallel
+        const results = await Promise.all(
+          compressed.map(async ({ blob, name }) => {
+            const ext = name.split(".").pop() || "jpg";
+            const fileName = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
-          const ext = file.name.split(".").pop() || "jpg";
-          const fileName = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+            const { error } = await supabase.storage
+              .from("report-photos")
+              .upload(fileName, blob, { contentType: "image/jpeg" });
 
-          const { error } = await supabase.storage
-            .from("report-photos")
-            .upload(fileName, fileToUpload);
+            if (error) {
+              console.error("Upload error:", error);
+              return null;
+            }
 
-          if (error) {
-            console.error("Upload error:", error);
-            toast.error(`Failed to upload ${file.name}: ${error.message}`);
-            continue;
-          }
+            const {
+              data: { publicUrl },
+            } = supabase.storage.from("report-photos").getPublicUrl(fileName);
 
-          const {
-            data: { publicUrl },
-          } = supabase.storage.from("report-photos").getPublicUrl(fileName);
+            return publicUrl;
+          })
+        );
 
-          uploadedUrls.push(publicUrl);
-        }
+        const uploadedUrls = results.filter(Boolean) as string[];
 
         if (uploadedUrls.length > 0) {
           onChange([...valueRef.current, ...uploadedUrls]);
@@ -85,13 +88,14 @@ export function PhotoUploader({
             `${uploadedUrls.length} photo${uploadedUrls.length > 1 ? "s" : ""} uploaded`
           );
         } else if (filesToUpload.length > 0) {
-          toast.error("No photos were uploaded. Please check your connection and try again.");
+          toast.error("Upload failed. Please check your connection and try again.");
         }
       } catch (error) {
         console.error("Upload failed:", error);
         toast.error("Upload failed. Please try again.");
       } finally {
         setUploading(false);
+        setProgress("");
       }
     },
     [userId, maxPhotos, onChange]
@@ -137,14 +141,17 @@ export function PhotoUploader({
             type="file"
             accept="image/*"
             multiple
-            onChange={(e) => handleUpload(e.target.files)}
+            onChange={(e) => {
+              handleUpload(e.target.files);
+              e.target.value = "";
+            }}
             className="hidden"
             disabled={uploading}
           />
           {uploading ? (
             <>
               <Loader2 className="mb-2 h-8 w-8 animate-spin text-emerald-600" />
-              <span className="text-sm text-stone-600">Uploading...</span>
+              <span className="text-sm text-stone-600">{progress || "Uploading..."}</span>
             </>
           ) : (
             <>

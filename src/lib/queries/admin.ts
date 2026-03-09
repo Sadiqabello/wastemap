@@ -164,7 +164,7 @@ export async function getRecentActivity(): Promise<
       activities.push({
         id: `user-${u.id}`,
         type: "new_user",
-        description: `${u.full_name} joined WasteMap`,
+        description: `${u.full_name} joined WasteMapNaija`,
         created_at: u.created_at,
       });
     }
@@ -178,10 +178,55 @@ export async function getRecentActivity(): Promise<
     .slice(0, 10);
 }
 
+export async function getAdminOverviewExtras(): Promise<{
+  active_collectors: number;
+  active_sponsors: number;
+  total_revenue: number;
+  pending_redemptions: number;
+}> {
+  const supabase = await createClient();
+
+  const [
+    { count: activeCollectors },
+    { count: activeSponsors },
+    { data: revenueData },
+    { count: pendingRedemptions },
+  ] = await Promise.all([
+    supabase
+      .from("collector_profiles")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "verified"),
+    supabase
+      .from("sponsorships")
+      .select("*", { count: "exact", head: true })
+      .eq("is_active", true),
+    supabase
+      .from("platform_revenue")
+      .select("amount_naira"),
+    supabase
+      .from("redemptions")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "pending"),
+  ]);
+
+  const totalRevenue = revenueData
+    ? revenueData.reduce((sum, row) => sum + (row.amount_naira ?? 0), 0)
+    : 0;
+
+  return {
+    active_collectors: activeCollectors ?? 0,
+    active_sponsors: activeSponsors ?? 0,
+    total_revenue: totalRevenue,
+    pending_redemptions: pendingRedemptions ?? 0,
+  };
+}
+
 export async function getAllUsers(
   page: number = 1,
+  limit: number = PAGE_SIZE,
   search?: string,
-  roleFilter?: string
+  roleFilter?: string,
+  tierFilter?: string
 ): Promise<{ users: ProfileWithEmail[]; total: number }> {
   const supabase = await createClient();
 
@@ -196,13 +241,17 @@ export async function getAllUsers(
     );
   }
 
+  if (tierFilter && tierFilter !== "all") {
+    query = query.eq("tier", tierFilter as "green_starter" | "eco_warrior" | "clean_champion" | "waste_hero");
+  }
+
   if (search) {
     query = query.ilike("full_name", `%${search}%`);
   }
 
   query = query
     .order("created_at", { ascending: false })
-    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+    .range((page - 1) * limit, page * limit - 1);
 
   const { data: profiles, count, error } = await query;
 
@@ -241,6 +290,43 @@ export async function getAllUsers(
   });
 
   return { users, total: count ?? 0 };
+}
+
+export async function getUserRoleCounts(): Promise<{
+  total: number;
+  admins: number;
+  authorities: number;
+  reporters: number;
+}> {
+  const supabase = await createClient();
+
+  const [
+    { count: total },
+    { count: admins },
+    { count: authorities },
+    { count: reporters },
+  ] = await Promise.all([
+    supabase.from("profiles").select("*", { count: "exact", head: true }),
+    supabase
+      .from("profiles")
+      .select("*", { count: "exact", head: true })
+      .eq("role", "admin"),
+    supabase
+      .from("profiles")
+      .select("*", { count: "exact", head: true })
+      .eq("role", "authority"),
+    supabase
+      .from("profiles")
+      .select("*", { count: "exact", head: true })
+      .eq("role", "reporter"),
+  ]);
+
+  return {
+    total: total ?? 0,
+    admins: admins ?? 0,
+    authorities: authorities ?? 0,
+    reporters: reporters ?? 0,
+  };
 }
 
 export async function getAllReportsAdmin(
@@ -292,7 +378,8 @@ export async function getAllReportsAdmin(
 
 export async function getAllEventsAdmin(
   page: number = 1,
-  statusFilter?: string
+  statusFilter?: string,
+  search?: string
 ): Promise<{ events: AdminEventEntry[]; total: number }> {
   const supabase = await createClient();
 
@@ -307,6 +394,10 @@ export async function getAllEventsAdmin(
       "status",
       statusFilter as "upcoming" | "in_progress" | "completed" | "cancelled"
     );
+  }
+
+  if (search) {
+    query = query.ilike("title", `%${search}%`);
   }
 
   query = query
@@ -331,4 +422,41 @@ export async function getAllEventsAdmin(
   });
 
   return { events, total: count ?? 0 };
+}
+
+export async function getEventStatusCounts(): Promise<{
+  total: number;
+  upcoming: number;
+  in_progress: number;
+  completed: number;
+}> {
+  const supabase = await createClient();
+
+  const [
+    { count: total },
+    { count: upcoming },
+    { count: inProgress },
+    { count: completed },
+  ] = await Promise.all([
+    supabase.from("events").select("*", { count: "exact", head: true }),
+    supabase
+      .from("events")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "upcoming"),
+    supabase
+      .from("events")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "in_progress"),
+    supabase
+      .from("events")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "completed"),
+  ]);
+
+  return {
+    total: total ?? 0,
+    upcoming: upcoming ?? 0,
+    in_progress: inProgress ?? 0,
+    completed: completed ?? 0,
+  };
 }

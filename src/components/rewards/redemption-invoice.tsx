@@ -120,7 +120,7 @@ export function RedemptionInvoice({ redemption, userName }: RedemptionInvoicePro
           {/* Header */}
           <div className="flex items-center justify-between border-b pb-4 mb-4">
             <div>
-              <h2 className="text-xl font-bold text-emerald-700">WasteMap</h2>
+              <h2 className="text-xl font-bold text-emerald-700">WasteMapNaija</h2>
               <p className="text-xs text-stone-400">Redemption Invoice</p>
             </div>
             <Badge variant="outline" className={`text-xs ${status.className}`}>
@@ -182,7 +182,7 @@ export function RedemptionInvoice({ redemption, userName }: RedemptionInvoicePro
                   {details.amount && (
                     <div>
                       <span className="text-stone-400">Amount: </span>
-                      <span className="text-stone-700">N{details.amount}</span>
+                      <span className="text-stone-700">₦{details.amount}</span>
                     </div>
                   )}
                   {details.accountName && (
@@ -224,10 +224,10 @@ export function RedemptionInvoice({ redemption, userName }: RedemptionInvoicePro
             {/* Footer */}
             <div className="border-t pt-3 mt-4 flex justify-between items-center">
               <p className="text-xs text-stone-400">
-                Conversion: 1 pt = N1
+                Conversion: 1 pt = ₦1
               </p>
               <p className="text-sm font-bold text-emerald-700">
-                Total: {redemption.points_spent} pts (N{redemption.points_spent})
+                Total: {redemption.points_spent} pts (₦{redemption.points_spent})
               </p>
             </div>
           </CardContent>

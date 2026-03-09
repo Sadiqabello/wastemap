@@ -91,7 +91,9 @@ export async function getRedemptionById(
 
 export async function getAllRewardsAdmin(
   page = 1,
-  limit = 20
+  limit = 20,
+  search?: string,
+  category?: string
 ): Promise<{ rewards: Reward[]; total: number }> {
   let supabase;
   try {
@@ -101,11 +103,21 @@ export async function getAllRewardsAdmin(
   }
   const from = (page - 1) * limit;
 
-  const { data, error, count } = await supabase
+  let query = supabase
     .from("rewards")
     .select("*", { count: "exact" })
     .order("created_at", { ascending: false })
     .range(from, from + limit - 1);
+
+  if (search) {
+    query = query.ilike("name", `%${search}%`);
+  }
+
+  if (category && category !== "all") {
+    query = query.eq("category", category as Reward["category"]);
+  }
+
+  const { data, error, count } = await query;
 
   if (error) {
     console.error("Error fetching admin rewards:", error);

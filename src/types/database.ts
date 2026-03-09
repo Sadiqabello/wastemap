@@ -20,6 +20,7 @@ export type Database = {
           referral_code: string | null;
           referred_by: string | null;
           phone_number: string | null;
+          is_premium: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -33,6 +34,7 @@ export type Database = {
           referral_code?: string | null;
           referred_by?: string | null;
           phone_number?: string | null;
+          is_premium?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -46,6 +48,7 @@ export type Database = {
           referral_code?: string | null;
           referred_by?: string | null;
           phone_number?: string | null;
+          is_premium?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -74,6 +77,8 @@ export type Database = {
           photo_urls: string[];
           cleanup_photo_urls: string[];
           upvote_count: number;
+          pickup_type: "cleanup" | "recycling" | null;
+          estimated_weight_kg: number | null;
           created_at: string;
           updated_at: string;
         };
@@ -91,6 +96,8 @@ export type Database = {
           photo_urls?: string[];
           cleanup_photo_urls?: string[];
           upvote_count?: number;
+          pickup_type?: "cleanup" | "recycling" | null;
+          estimated_weight_kg?: number | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -108,6 +115,8 @@ export type Database = {
           photo_urls?: string[];
           cleanup_photo_urls?: string[];
           upvote_count?: number;
+          pickup_type?: "cleanup" | "recycling" | null;
+          estimated_weight_kg?: number | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -583,6 +592,90 @@ export type Database = {
           },
         ];
       };
+      collector_profiles: {
+        Row: CollectorProfileRow;
+        Insert: Partial<CollectorProfileRow> & { user_id: string; business_name: string };
+        Update: Partial<CollectorProfileRow>;
+        Relationships: [];
+      };
+      pickup_bids: {
+        Row: PickupBidRow;
+        Insert: Partial<PickupBidRow> & { report_id: string; collector_id: string; bid_amount: number };
+        Update: Partial<PickupBidRow>;
+        Relationships: [];
+      };
+      collector_reviews: {
+        Row: CollectorReviewRow;
+        Insert: Partial<CollectorReviewRow> & { bid_id: string; reviewer_id: string; collector_id: string; rating: number };
+        Update: Partial<CollectorReviewRow>;
+        Relationships: [];
+      };
+      sponsorships: {
+        Row: SponsorshipRow;
+        Insert: Partial<SponsorshipRow> & { company_name: string; start_date: string; end_date: string };
+        Update: Partial<SponsorshipRow>;
+        Relationships: [];
+      };
+      sponsored_rewards: {
+        Row: SponsoredRewardRow;
+        Insert: Partial<SponsoredRewardRow> & { sponsorship_id: string };
+        Update: Partial<SponsoredRewardRow>;
+        Relationships: [];
+      };
+      carbon_tracking: {
+        Row: CarbonTrackingRow;
+        Insert: Partial<CarbonTrackingRow> & { report_id: string; waste_type: string };
+        Update: Partial<CarbonTrackingRow>;
+        Relationships: [];
+      };
+      achievements: {
+        Row: AchievementRow;
+        Insert: Partial<AchievementRow> & { slug: string; name: string; criteria_type: string; criteria_value: number };
+        Update: Partial<AchievementRow>;
+        Relationships: [];
+      };
+      user_achievements: {
+        Row: UserAchievementRow;
+        Insert: { user_id: string; achievement_id: string; earned_at?: string };
+        Update: Partial<UserAchievementRow>;
+        Relationships: [];
+      };
+      premium_subscriptions: {
+        Row: PremiumSubscriptionRow;
+        Insert: Partial<PremiumSubscriptionRow> & { user_id: string; amount_naira: number; expires_at: string };
+        Update: Partial<PremiumSubscriptionRow>;
+        Relationships: [];
+      };
+      platform_revenue: {
+        Row: PlatformRevenueRow;
+        Insert: Partial<PlatformRevenueRow> & { source: string; amount_naira: number };
+        Update: Partial<PlatformRevenueRow>;
+        Relationships: [];
+      };
+      platform_settings: {
+        Row: PlatformSettingRow;
+        Insert: Partial<PlatformSettingRow> & { key: string; value: Json; category: string };
+        Update: Partial<PlatformSettingRow>;
+        Relationships: [];
+      };
+      dump_sites: {
+        Row: DumpSiteRow;
+        Insert: Omit<DumpSiteRow, "id" | "upvote_count" | "created_at" | "updated_at"> & {
+          id?: string;
+          upvote_count?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<DumpSiteRow>;
+        Relationships: [
+          {
+            foreignKeyName: "dump_sites_added_by_fkey";
+            columns: ["added_by"];
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
     };
     Views: {
       dashboard_stats: {
@@ -607,6 +700,37 @@ export type Database = {
           new_users_this_month: number;
           reports_this_week: number;
           reports_this_month: number;
+        };
+        Relationships: [];
+      };
+      revenue_stats: {
+        Row: {
+          total_revenue: number;
+          fee_revenue: number;
+          commission_revenue: number;
+          subscription_revenue: number;
+          sponsorship_revenue: number;
+          revenue_this_week: number;
+          revenue_this_month: number;
+        };
+        Relationships: [];
+      };
+      carbon_stats: {
+        Row: {
+          tracked_reports: number;
+          total_weight_kg: number;
+          total_co2_avoided_kg: number;
+          verified_co2_kg: number;
+          certified_co2_kg: number;
+        };
+        Relationships: [];
+      };
+      collector_stats: {
+        Row: {
+          active_collectors: number;
+          pending_collectors: number;
+          total_pickups: number;
+          total_collector_earnings: number;
         };
         Relationships: [];
       };
@@ -652,6 +776,16 @@ export type Database = {
       };
     };
     Enums: {
+      dump_site_type:
+        | "trash_can"
+        | "recycling_bin"
+        | "dumpster"
+        | "transfer_station"
+        | "landfill"
+        | "compost_site"
+        | "drop_off_center"
+        | "street_bin";
+      dump_site_status: "pending" | "verified" | "rejected" | "closed";
       waste_category:
         | "household"
         | "industrial"
@@ -691,4 +825,179 @@ export type Database = {
     };
     CompositeTypes: Record<string, never>;
   };
+};
+
+// ── Revenue Feature Tables (Migration 009) ─────────────────
+
+export type CollectorProfileRow = {
+  id: string;
+  user_id: string;
+  business_name: string;
+  business_registration: string | null;
+  description: string | null;
+  waste_categories: string[];
+  service_area_radius: number;
+  latitude: number | null;
+  longitude: number | null;
+  address: string | null;
+  phone: string | null;
+  rating: number;
+  total_pickups: number;
+  total_earnings: number;
+  status: "pending" | "verified" | "suspended" | "rejected";
+  is_available: boolean;
+  review_note: string | null;
+  reviewed_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PickupBidRow = {
+  id: string;
+  report_id: string;
+  collector_id: string;
+  bid_amount: number;
+  estimated_time: string | null;
+  notes: string | null;
+  status: "pending" | "accepted" | "rejected" | "completed" | "cancelled";
+  platform_fee: number;
+  bid_type: "cleanup" | "recycling";
+  completed_at: string | null;
+  created_at: string;
+};
+
+export type CollectorReviewRow = {
+  id: string;
+  bid_id: string;
+  reviewer_id: string;
+  collector_id: string;
+  rating: number;
+  comment: string | null;
+  created_at: string;
+};
+
+export type SponsorshipRow = {
+  id: string;
+  company_name: string;
+  contact_name: string | null;
+  contact_email: string | null;
+  contact_phone: string | null;
+  tier: "bronze" | "silver" | "gold" | "platinum";
+  logo_url: string | null;
+  website_url: string | null;
+  description: string | null;
+  start_date: string;
+  end_date: string;
+  budget_allocated: number;
+  budget_spent: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type SponsoredRewardRow = {
+  id: string;
+  sponsorship_id: string;
+  reward_id: string | null;
+  challenge_id: string | null;
+  budget_allocated: number;
+  budget_spent: number;
+  created_at: string;
+};
+
+export type CarbonTrackingRow = {
+  id: string;
+  report_id: string;
+  estimated_weight_kg: number | null;
+  waste_type: string;
+  co2_avoided_kg: number | null;
+  verification_status: string;
+  verified_by: string | null;
+  verified_at: string | null;
+  notes: string | null;
+  created_at: string;
+};
+
+export type AchievementRow = {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  icon: string;
+  color: string;
+  category: string;
+  criteria_type: string;
+  criteria_value: number;
+  points_reward: number;
+  is_active: boolean;
+  sort_order: number;
+  created_at: string;
+};
+
+export type UserAchievementRow = {
+  user_id: string;
+  achievement_id: string;
+  earned_at: string;
+};
+
+export type PremiumSubscriptionRow = {
+  id: string;
+  user_id: string;
+  plan: string;
+  amount_naira: number;
+  status: "active" | "cancelled" | "expired" | "trial";
+  started_at: string;
+  expires_at: string;
+  cancelled_at: string | null;
+  payment_reference: string | null;
+  created_at: string;
+};
+
+export type PlatformRevenueRow = {
+  id: string;
+  source: string;
+  amount_naira: number;
+  reference_id: string | null;
+  reference_type: string | null;
+  description: string | null;
+  created_at: string;
+};
+
+export type PlatformSettingRow = {
+  key: string;
+  value: Json;
+  description: string | null;
+  category: string;
+  updated_at: string;
+};
+
+export type DumpSiteType =
+  | "trash_can"
+  | "recycling_bin"
+  | "dumpster"
+  | "transfer_station"
+  | "landfill"
+  | "compost_site"
+  | "drop_off_center"
+  | "street_bin";
+
+export type DumpSiteStatus = "pending" | "verified" | "rejected" | "closed";
+
+export type DumpSiteRow = {
+  id: string;
+  added_by: string;
+  name: string;
+  description: string | null;
+  site_type: DumpSiteType;
+  status: DumpSiteStatus;
+  latitude: number;
+  longitude: number;
+  address: string | null;
+  photo_urls: string[];
+  operating_hours: string | null;
+  accepts: string[];
+  is_free: boolean;
+  upvote_count: number;
+  created_at: string;
+  updated_at: string;
 };

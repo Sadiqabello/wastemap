@@ -101,3 +101,88 @@ export async function getRecentReports(
 
   return (data as unknown as ReportWithProfile[]) || [];
 }
+
+const PAGE_SIZE = 20;
+
+export async function getPaginatedReports({
+  page = 1,
+  limit = PAGE_SIZE,
+  userId,
+  isAdmin = false,
+  search,
+  category,
+  severity,
+  status,
+  dateFrom,
+  dateTo,
+  sortBy = "created_at",
+  sortOrder = "desc",
+}: {
+  page?: number;
+  limit?: number;
+  userId?: string;
+  isAdmin?: boolean;
+  search?: string;
+  category?: string;
+  severity?: string;
+  status?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  sortBy?: string;
+  sortOrder?: string;
+}): Promise<{ reports: ReportWithProfile[]; total: number }> {
+  const supabase = await createClient();
+
+  let query = supabase
+    .from("reports")
+    .select("*, profiles!reports_user_id_fkey (full_name, avatar_url)", { count: "exact" });
+
+  // Non-admin users only see their own reports
+  if (!isAdmin && userId) {
+    query = query.eq("user_id", userId);
+  }
+
+  if (search) {
+    query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%,address.ilike.%${search}%`);
+  }
+
+  if (category && category !== "all") {
+    query = query.eq("category", category as "household" | "industrial" | "hazardous" | "electronic" | "construction" | "medical" | "organic" | "other");
+  }
+
+  if (severity && severity !== "all") {
+    query = query.eq("severity", severity as "low" | "medium" | "high" | "critical");
+  }
+
+  if (status && status !== "all") {
+    query = query.eq("status", status as "reported" | "acknowledged" | "cleanup_scheduled" | "in_progress" | "resolved");
+  }
+
+  if (dateFrom) {
+    query = query.gte("created_at", dateFrom);
+  }
+
+  if (dateTo) {
+    // Add a day to include the full end date
+    const endDate = new Date(dateTo);
+    endDate.setDate(endDate.getDate() + 1);
+    query = query.lt("created_at", endDate.toISOString());
+  }
+
+  const ascending = sortOrder === "asc";
+  query = query
+    .order(sortBy, { ascending })
+    .range((page - 1) * limit, page * limit - 1);
+
+  const { data, count, error } = await query;
+
+  if (error) {
+    console.error("Error fetching paginated reports:", error);
+    return { reports: [], total: 0 };
+  }
+
+  return {
+    reports: (data as unknown as ReportWithProfile[]) || [],
+    total: count ?? 0,
+  };
+}

@@ -48,7 +48,7 @@ export default async function RewardsPage() {
               <p className="text-emerald-100 text-sm">Available Balance</p>
               <p className="text-3xl font-bold">{profile.points} pts</p>
               <p className="text-emerald-200 text-xs mt-1">
-                = N{profile.points} value (1 pt = N1)
+                = ₦{profile.points} value (1 pt = ₦1)
               </p>
             </div>
             <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/20">

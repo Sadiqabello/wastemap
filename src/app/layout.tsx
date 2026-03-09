@@ -18,11 +18,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "WasteMap - Report Waste in Your Community",
+  title: "WasteMapNaija - Report Waste in Your Community",
   description:
     "A community-powered platform for reporting and tracking illegal waste dumpsites. Help keep your environment clean.",
   openGraph: {
-    title: "WasteMap - Report Waste in Your Community",
+    title: "WasteMapNaija - Report Waste in Your Community",
     description:
       "A community-powered platform for reporting and tracking illegal waste dumpsites.",
     type: "website",

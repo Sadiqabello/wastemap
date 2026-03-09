@@ -40,8 +40,8 @@ export function ReferralCodeCard({ code, baseUrl }: ReferralCodeCardProps) {
   async function handleShare() {
     if (navigator.share) {
       await navigator.share({
-        title: "Join WasteMap",
-        text: "Help keep our community clean and earn rewards! Join WasteMap using my referral link:",
+        title: "Join WasteMapNaija",
+        text: "Help keep our community clean and earn rewards! Join WasteMapNaija using my referral link:",
         url: referralLink,
       });
     } else {

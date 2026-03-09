@@ -1,4 +1,17 @@
-import type { Database } from "./database";
+import type {
+  Database,
+  CollectorProfileRow,
+  PickupBidRow,
+  CollectorReviewRow,
+  SponsorshipRow,
+  SponsoredRewardRow,
+  CarbonTrackingRow,
+  AchievementRow,
+  UserAchievementRow,
+  PremiumSubscriptionRow,
+  PlatformRevenueRow,
+  DumpSiteRow,
+} from "./database";
 
 // Table row types
 export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
@@ -145,3 +158,78 @@ export type ChallengeWithProgress = Challenge & {
   user_progress: number;
   user_completed: boolean;
 };
+
+// ── Revenue Feature Types ────────────────────────────────────
+
+export type CollectorProfile = CollectorProfileRow;
+export type PickupBid = PickupBidRow;
+export type CollectorReview = CollectorReviewRow;
+export type Sponsorship = SponsorshipRow;
+export type SponsoredReward = SponsoredRewardRow;
+export type CarbonTracking = CarbonTrackingRow;
+export type Achievement = AchievementRow;
+export type UserAchievement = UserAchievementRow;
+export type PremiumSubscription = PremiumSubscriptionRow;
+export type PlatformRevenue = PlatformRevenueRow;
+
+// Joined types for revenue features
+export type CollectorWithProfile = CollectorProfile & {
+  profiles: Pick<Profile, "full_name" | "avatar_url">;
+};
+
+export type BidWithCollector = PickupBid & {
+  collector_profiles: Pick<CollectorProfile, "business_name" | "rating" | "total_pickups">;
+  profiles: Pick<Profile, "full_name" | "avatar_url">;
+};
+
+export type BidWithReport = PickupBid & {
+  reports: Pick<Report, "title" | "category" | "severity" | "address">;
+};
+
+export type AchievementWithEarned = Achievement & {
+  earned: boolean;
+  earned_at: string | null;
+};
+
+export type SponsorshipWithSpend = Sponsorship & {
+  sponsored_rewards: SponsoredReward[];
+};
+
+export interface CarbonStats {
+  tracked_reports: number;
+  total_weight_kg: number;
+  total_co2_avoided_kg: number;
+  verified_co2_kg: number;
+  certified_co2_kg: number;
+}
+
+export interface RevenueStats {
+  total_revenue: number;
+  fee_revenue: number;
+  commission_revenue: number;
+  subscription_revenue: number;
+  sponsorship_revenue: number;
+  revenue_this_week: number;
+  revenue_this_month: number;
+}
+
+// Dump Sites
+export type DumpSite = DumpSiteRow;
+export type DumpSiteType = Database["public"]["Enums"]["dump_site_type"];
+export type DumpSiteStatus = Database["public"]["Enums"]["dump_site_status"];
+
+export type DumpSiteWithProfile = DumpSite & {
+  profiles: Pick<Profile, "full_name" | "avatar_url">;
+};
+
+export type DumpSiteMapMarker = Pick<
+  DumpSite,
+  "id" | "name" | "latitude" | "longitude" | "site_type" | "status" | "is_free"
+>;
+
+export interface CollectorStats {
+  active_collectors: number;
+  pending_collectors: number;
+  total_pickups: number;
+  total_collector_earnings: number;
+}

@@ -48,7 +48,7 @@ export function RedeemAirtimeForm({ userPoints, userPhone }: Props) {
     if (result.error) {
       toast.error(result.error);
     } else {
-      toast.success(`N${numAmount} airtime sent to ${phone}!`);
+      toast.success(`₦${numAmount} airtime sent to ${phone}!`);
       setAmount("");
     }
   }
@@ -102,7 +102,7 @@ export function RedeemAirtimeForm({ userPoints, userPhone }: Props) {
                 className={`text-xs h-7 ${numAmount === a ? "bg-emerald-600 hover:bg-emerald-700" : ""}`}
                 onClick={() => setAmount(String(a))}
               >
-                N{a}
+                ₦{a}
               </Button>
             ))}
           </div>
@@ -113,7 +113,7 @@ export function RedeemAirtimeForm({ userPoints, userPhone }: Props) {
             <div className="flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4" />
               <span>
-                <strong>{numAmount} pts</strong> will be deducted for <strong>N{numAmount}</strong> airtime
+                <strong>{numAmount} pts</strong> will be deducted for <strong>₦{numAmount}</strong> airtime
               </span>
             </div>
             <p className="text-xs text-emerald-600 mt-1">
@@ -139,7 +139,7 @@ export function RedeemAirtimeForm({ userPoints, userPhone }: Props) {
               Sending airtime...
             </>
           ) : (
-            `Send N${numAmount || 0} Airtime`
+            `Send ₦${numAmount || 0} Airtime`
           )}
         </Button>
       </CardContent>

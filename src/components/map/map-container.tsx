@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { MapMarker } from "@/types";
+import type { MapMarker, DumpSiteMapMarker } from "@/types";
 
 const MapInner = dynamic(() => import("./map-inner"), {
   ssr: false,
@@ -11,6 +11,7 @@ const MapInner = dynamic(() => import("./map-inner"), {
 
 interface MapContainerProps {
   markers?: MapMarker[];
+  dumpSites?: DumpSiteMapMarker[];
   center?: [number, number];
   zoom?: number;
   interactive?: boolean;

@@ -1,4 +1,4 @@
--- WasteMap Seed Data
+-- WasteMapNaija Seed Data
 -- Creates demo users, reports, events, and activity
 -- Run AFTER migrations. Uses service_role context (supabase db reset runs this automatically).
 
@@ -401,7 +401,7 @@ VALUES
   ('b0000000-0000-0000-0000-000000000006', 'N500 Bank Transfer', 'Get N500 transferred to your bank account', 'bank_transfer', 500, 'paystack', true, NULL, 'eco_warrior'),
   ('b0000000-0000-0000-0000-000000000007', 'N1000 Bank Transfer', 'Get N1000 transferred to your bank account', 'bank_transfer', 1000, 'paystack', true, NULL, 'clean_champion'),
   ('b0000000-0000-0000-0000-000000000008', 'N2000 Jumia Gift Card', 'Get a N2000 Jumia shopping voucher', 'gift_card', 2000, 'manual', true, 50, 'clean_champion'),
-  ('b0000000-0000-0000-0000-000000000009', 'WasteMap T-Shirt', 'Official WasteMap branded t-shirt', 'merchandise', 1500, 'manual', true, 20, 'eco_warrior'),
+  ('b0000000-0000-0000-0000-000000000009', 'WasteMapNaija T-Shirt', 'Official WasteMapNaija branded t-shirt', 'merchandise', 1500, 'manual', true, 20, 'eco_warrior'),
   ('b0000000-0000-0000-0000-000000000010', 'N500 Electricity Bill', 'Pay N500 towards your electricity bill', 'utility', 500, 'vtpass', true, NULL, NULL);
 
 -- ============================================

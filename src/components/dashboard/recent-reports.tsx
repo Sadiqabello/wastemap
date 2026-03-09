@@ -7,18 +7,32 @@ import type { ReportWithProfile } from "@/types";
 
 interface RecentReportsProps {
   reports: ReportWithProfile[];
+  isAdmin?: boolean;
 }
 
-export function RecentReports({ reports }: RecentReportsProps) {
+export function RecentReports({ reports, isAdmin }: RecentReportsProps) {
+  const title = isAdmin ? "Recent Reports" : "My Recent Reports";
+
   if (reports.length === 0) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Recent Reports</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base">{title}</CardTitle>
+            <Link
+              href="/reports"
+              className="text-sm text-emerald-600 hover:underline"
+            >
+              View All &rarr;
+            </Link>
+          </div>
         </CardHeader>
         <CardContent>
           <p className="py-8 text-center text-sm text-stone-500">
-            No reports yet
+            No reports yet.{" "}
+            <Link href="/reports/new" className="text-emerald-600 hover:underline">
+              Create a new report
+            </Link>
           </p>
         </CardContent>
       </Card>
@@ -28,7 +42,15 @@ export function RecentReports({ reports }: RecentReportsProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Recent Reports</CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base">{title}</CardTitle>
+          <Link
+            href="/reports"
+            className="text-sm text-emerald-600 hover:underline"
+          >
+            View All &rarr;
+          </Link>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">

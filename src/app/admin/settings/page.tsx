@@ -1,16 +1,21 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { POINT_VALUES, POINT_LABELS } from "@/lib/constants";
 import { ExternalLink } from "lucide-react";
+import { getSettings } from "@/lib/queries/settings";
+import AdminSettingsForm from "@/components/admin/admin-settings-form";
 
-export default function AdminSettingsPage() {
+export default async function AdminSettingsPage() {
+  const settings = await getSettings();
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Settings</h1>
         <p className="text-muted-foreground">
-          Platform configuration and information
+          Platform configuration and system settings
         </p>
       </div>
+
+      <AdminSettingsForm settings={settings} />
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
@@ -20,7 +25,7 @@ export default function AdminSettingsPage() {
           <CardContent className="space-y-3">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Application</span>
-              <span className="font-medium">WasteMap</span>
+              <span className="font-medium">WasteMapNaija</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Framework</span>
@@ -34,24 +39,6 @@ export default function AdminSettingsPage() {
               <span className="text-muted-foreground">Auth</span>
               <span className="font-medium">Supabase Auth</span>
             </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Point Values</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {Object.entries(POINT_VALUES).map(([action, points]) => (
-              <div key={action} className="flex justify-between text-sm">
-                <span className="text-muted-foreground">
-                  {POINT_LABELS[action as keyof typeof POINT_LABELS]}
-                </span>
-                <span className="font-medium text-emerald-600">
-                  +{points} pts
-                </span>
-              </div>
-            ))}
           </CardContent>
         </Card>
 

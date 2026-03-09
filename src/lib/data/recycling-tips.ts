@@ -154,11 +154,11 @@ export const RECYCLING_TIPS: RecyclingTip[] = [
     detail: `Community cleanups are powerful — they clean areas, build bonds, and raise awareness.
 
 **Planning Your Cleanup**
-1. **Choose a location** — Use WasteMap reports to find hotspots
+1. **Choose a location** — Use WasteMapNaija reports to find hotspots
 2. **Set a date and time** — Weekends work best, 2-3 hours is ideal
 3. **Get permissions** — Contact local authorities if needed
 4. **Recruit volunteers** — Share on social media, community boards, WhatsApp groups
-5. **Create an event** — Use WasteMap's Events feature to organize
+5. **Create an event** — Use WasteMapNaija's Events feature to organize
 
 **What You'll Need**
 - Trash bags (separate for recyclables)
@@ -176,7 +176,7 @@ export const RECYCLING_TIPS: RecyclingTip[] = [
 - Take after photos — show the impact!
 
 **After the Cleanup**
-- Update report status on WasteMap
+- Update report status on WasteMapNaija
 - Upload before/after photos
 - Share results on social media
 - Thank your volunteers

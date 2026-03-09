@@ -87,7 +87,7 @@ export function RedeemCashForm({ userPoints }: Props) {
     if (result.error) {
       toast.error(result.error);
     } else {
-      toast.success(`N${numAmount} sent to ${accountName}!`);
+      toast.success(`₦${numAmount} sent to ${accountName}!`);
       setAmount("");
       setAccountNumber("");
       setAccountName("");
@@ -168,7 +168,7 @@ export function RedeemCashForm({ userPoints }: Props) {
                 className={`text-xs h-7 ${numAmount === a ? "bg-emerald-600 hover:bg-emerald-700" : ""}`}
                 onClick={() => setAmount(String(a))}
               >
-                N{a}
+                ₦{a}
               </Button>
             ))}
           </div>
@@ -179,7 +179,7 @@ export function RedeemCashForm({ userPoints }: Props) {
             <div className="flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4" />
               <span>
-                <strong>{numAmount} pts</strong> will be deducted. <strong>N{numAmount}</strong> sent to {accountName}
+                <strong>{numAmount} pts</strong> will be deducted. <strong>₦{numAmount}</strong> sent to {accountName}
               </span>
             </div>
             <p className="text-xs text-emerald-600 mt-1">
@@ -205,7 +205,7 @@ export function RedeemCashForm({ userPoints }: Props) {
               Processing transfer...
             </>
           ) : (
-            `Transfer N${numAmount || 0}`
+            `Transfer ₦${numAmount || 0}`
           )}
         </Button>
         </fieldset>

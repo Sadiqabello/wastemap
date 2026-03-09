@@ -13,11 +13,11 @@ import {
 import MarkerClusterGroup from "react-leaflet-cluster";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM, SEVERITY_COLORS, NIGERIA_BOUNDS, isWithinNigeria } from "@/lib/constants";
+import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM, SEVERITY_COLORS, DUMP_SITE_TYPE_COLORS, DUMP_SITE_TYPE_LABELS, NIGERIA_BOUNDS, isWithinNigeria } from "@/lib/constants";
 import { MapPopup } from "./map-popup";
 import { Crosshair } from "lucide-react";
-import type { MapMarker } from "@/types";
-import type { SeverityLevel } from "@/types";
+import type { MapMarker, DumpSiteMapMarker } from "@/types";
+import type { SeverityLevel, DumpSiteType } from "@/types";
 
 function createMarkerIcon(severity: SeverityLevel, status: string) {
   const color = status === "resolved" ? "#9ca3af" : SEVERITY_COLORS[severity];
@@ -34,6 +34,24 @@ function createMarkerIcon(severity: SeverityLevel, status: string) {
     iconSize: [28, 36],
     iconAnchor: [14, 36],
     popupAnchor: [0, -36],
+  });
+}
+
+function createDumpSiteIcon(siteType: DumpSiteType) {
+  const color = DUMP_SITE_TYPE_COLORS[siteType];
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 34" width="28" height="34">
+      <rect x="2" y="2" width="24" height="24" rx="6" fill="${color}" stroke="white" stroke-width="1.5"/>
+      <polygon points="14,34 8,26 20,26" fill="${color}"/>
+      <circle cx="14" cy="14" r="5" fill="white" opacity="0.9"/>
+    </svg>
+  `;
+  return L.divIcon({
+    html: svg,
+    className: "dump-site-icon",
+    iconSize: [28, 34],
+    iconAnchor: [14, 34],
+    popupAnchor: [0, -34],
   });
 }
 
@@ -64,24 +82,34 @@ const userLocationIcon = L.divIcon({
   iconAnchor: [10, 10],
 });
 
-function UserLocation() {
+function UserLocation({ onLocationFound }: { onLocationFound?: (pos: [number, number]) => void }) {
   const map = useMap();
   const [position, setPosition] = useState<[number, number] | null>(null);
+  const [accuracy, setAccuracy] = useState(100);
 
   useEffect(() => {
     if (!navigator.geolocation) return;
 
-    navigator.geolocation.getCurrentPosition(
+    // Use watchPosition for continuous tracking
+    const watchId = navigator.geolocation.watchPosition(
       (pos) => {
         const coords: [number, number] = [pos.coords.latitude, pos.coords.longitude];
+        const isFirst = !position;
         setPosition(coords);
-        map.flyTo(coords, 14, { duration: 1.5 });
+        setAccuracy(pos.coords.accuracy);
+        if (isFirst) {
+          map.flyTo(coords, 14, { duration: 1.5 });
+          onLocationFound?.(coords);
+        }
       },
-      () => {
-        // Silently fall back to default center
+      (err) => {
+        console.warn("Geolocation error:", err.message);
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+      { enableHighAccuracy: true, timeout: 30000, maximumAge: 10000 }
     );
+
+    return () => navigator.geolocation.clearWatch(watchId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map]);
 
   if (!position) return null;
@@ -90,7 +118,7 @@ function UserLocation() {
     <>
       <Circle
         center={position}
-        radius={100}
+        radius={Math.min(accuracy, 500)}
         pathOptions={{
           color: "#3b82f6",
           fillColor: "#3b82f6",
@@ -109,34 +137,64 @@ function UserLocation() {
 
 function LocateButton() {
   const map = useMap();
+  const [locating, setLocating] = useState(false);
+  const [error, setError] = useState(false);
 
   const handleClick = () => {
-    if (!navigator.geolocation) return;
+    if (!navigator.geolocation) {
+      setError(true);
+      return;
+    }
+
+    setLocating(true);
+    setError(false);
+
     navigator.geolocation.getCurrentPosition(
       (pos) => {
+        setLocating(false);
         map.flyTo([pos.coords.latitude, pos.coords.longitude], 15, {
           duration: 1.5,
         });
       },
-      () => {},
-      { enableHighAccuracy: true, timeout: 10000 }
+      (err) => {
+        setLocating(false);
+        setError(true);
+        console.warn("Locate failed:", err.message);
+        // Reset error indicator after 3 seconds
+        setTimeout(() => setError(false), 3000);
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
     );
   };
 
   return (
     <button
       onClick={handleClick}
-      className="absolute top-4 right-4 z-[1000] flex h-10 w-10 items-center justify-center rounded-lg border bg-white shadow-md hover:bg-stone-50 transition-colors"
-      title="Go to my location"
+      className={`absolute top-4 right-4 z-[1000] flex h-10 w-10 items-center justify-center rounded-lg border shadow-md transition-colors ${
+        error
+          ? "bg-red-50 border-red-200"
+          : locating
+            ? "bg-blue-50 border-blue-200"
+            : "bg-white hover:bg-stone-50"
+      }`}
+      title={error ? "Location unavailable — check permissions" : locating ? "Getting your location..." : "Go to my location"}
       type="button"
+      disabled={locating}
     >
-      <Crosshair className="h-5 w-5 text-stone-700" />
+      {locating ? (
+        <Crosshair className="h-5 w-5 text-blue-600 animate-pulse" />
+      ) : error ? (
+        <Crosshair className="h-5 w-5 text-red-500" />
+      ) : (
+        <Crosshair className="h-5 w-5 text-stone-700" />
+      )}
     </button>
   );
 }
 
 interface MapInnerProps {
   markers?: MapMarker[];
+  dumpSites?: DumpSiteMapMarker[];
   center?: [number, number];
   zoom?: number;
   interactive?: boolean;
@@ -146,6 +204,7 @@ interface MapInnerProps {
 
 export default function MapInner({
   markers = [],
+  dumpSites = [],
   center = DEFAULT_MAP_CENTER,
   zoom = DEFAULT_MAP_ZOOM,
   onLocationSelect,
@@ -217,6 +276,30 @@ export default function MapInner({
           ))}
         </MarkerClusterGroup>
       )}
+
+      {dumpSites.map((site) => (
+        <Marker
+          key={`dump-${site.id}`}
+          position={[site.latitude, site.longitude]}
+          icon={createDumpSiteIcon(site.site_type)}
+        >
+          <Popup>
+            <div className="min-w-[180px] p-1">
+              <h3 className="font-semibold text-sm text-stone-800">{site.name}</h3>
+              <p className="text-xs text-stone-500 mt-0.5">
+                {DUMP_SITE_TYPE_LABELS[site.site_type]}
+                {site.is_free ? " \u00B7 Free" : ""}
+              </p>
+              <a
+                href={`/dump-sites/${site.id}`}
+                className="inline-block mt-2 text-xs font-medium text-emerald-600 hover:text-emerald-700"
+              >
+                View Details &rarr;
+              </a>
+            </div>
+          </Popup>
+        </Marker>
+      ))}
     </MapContainer>
   );
 }

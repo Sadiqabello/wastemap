@@ -24,11 +24,11 @@ export function getRedemptionLabel(r: RedemptionWithReward): { name: string; cat
   const type = details?.type || "redemption";
   switch (type) {
     case "airtime":
-      return { name: `N${details?.amount || r.points_spent} Airtime`, category: "Airtime" };
+      return { name: `₦${details?.amount || r.points_spent} Airtime`, category: "Airtime" };
     case "data":
       return { name: `Data: ${details?.variationCode || "bundle"}`, category: "Data Bundle" };
     case "bank_transfer":
-      return { name: `N${details?.amount || r.points_spent} Cash Transfer`, category: "Bank Transfer" };
+      return { name: `₦${details?.amount || r.points_spent} Cash Transfer`, category: "Bank Transfer" };
     default:
       return { name: "Redemption", category: type };
   }

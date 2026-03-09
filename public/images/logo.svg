@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 170" fill="none">
+  <!-- Map pin outline -->
+  <path d="M60 168 C60 168 2 105 2 60 A58 58 0 1 1 118 60 C118 105 60 168 60 168Z" fill="#3EB472"/>
+
+  <!-- Recycling arrows around trash can -->
+  <g transform="translate(60,58)">
+    <!-- Top-right arrow -->
+    <polygon points="8,-32 24,-18 16,-18 12,-8 4,-8 0,-18 -8,-18" fill="white"/>
+    <!-- Bottom-right arrow -->
+    <polygon points="30,0 28,18 22,12 14,18 10,12 18,4 12,-2" fill="white"/>
+    <!-- Bottom-left arrow -->
+    <polygon points="-14,18 -28,18 -22,12 -18,0 -10,0 -12,12 -6,12" fill="white"/>
+    <!-- Left arrow -->
+    <polygon points="-18,-8 -12,-18 -8,-8 -12,0 -18,4 -22,-2 -26,-8" fill="white"/>
+  </g>
+
+  <!-- Trash can -->
+  <g fill="white">
+    <!-- Lid top handle -->
+    <rect x="44" y="38" width="32" height="5" rx="2.5"/>
+    <rect x="52" y="33" width="16" height="7" rx="2"/>
+    <!-- Can body -->
+    <rect x="42" y="46" width="36" height="38" rx="3"/>
+    <!-- Vertical lines -->
+    <line x1="52" y1="52" x2="52" y2="78" stroke="#3EB472" stroke-width="3" stroke-linecap="round"/>
+    <line x1="60" y1="52" x2="60" y2="78" stroke="#3EB472" stroke-width="3" stroke-linecap="round"/>
+    <line x1="68" y1="52" x2="68" y2="78" stroke="#3EB472" stroke-width="3" stroke-linecap="round"/>
+  </g>
+</svg>

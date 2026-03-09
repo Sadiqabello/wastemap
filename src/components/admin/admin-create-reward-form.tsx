@@ -74,7 +74,7 @@ export function AdminCreateRewardForm() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Name</Label>
-                <Input id="name" name="name" required placeholder="MTN N100 Airtime" />
+                <Input id="name" name="name" required placeholder="MTN ₦100 Airtime" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="category">Category</Label>
@@ -137,7 +137,7 @@ export function AdminCreateRewardForm() {
                 <div className="space-y-2">
                   <Label htmlFor="amount">Naira Amount</Label>
                   <Input id="amount" name="amount" type="number" min="50" placeholder="100" />
-                  <p className="text-[10px] text-stone-400">Amount in Naira to send (e.g. 100 for N100 airtime)</p>
+                  <p className="text-[10px] text-stone-400">Amount in Naira to send (e.g. 100 for ₦100 airtime)</p>
                 </div>
               )}
             </div>

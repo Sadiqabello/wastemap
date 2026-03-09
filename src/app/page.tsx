@@ -2,14 +2,18 @@ import Link from "next/link";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getAllMapMarkers } from "@/lib/queries/reports";
+import { getAllDumpSiteMarkers } from "@/lib/queries/dump-sites";
 import { HomeMapClient } from "@/components/map/home-map-client";
 
 export default async function HomePage() {
-  const markers = await getAllMapMarkers();
+  const [markers, dumpSites] = await Promise.all([
+    getAllMapMarkers(),
+    getAllDumpSiteMarkers(),
+  ]);
 
   return (
     <div className="relative h-[calc(100vh-3.5rem-4rem)] md:h-[calc(100vh-3.5rem)]">
-      <HomeMapClient markers={markers} />
+      <HomeMapClient markers={markers} dumpSites={dumpSites} />
 
       {/* Floating Action Button */}
       <Link
@@ -41,6 +45,28 @@ export default async function HomePage() {
             <div key={label} className="flex items-center gap-2">
               <span
                 className="h-3 w-3 rounded-full"
+                style={{ backgroundColor: color }}
+              />
+              <span className="text-xs text-stone-600">{label}</span>
+            </div>
+          ))}
+        </div>
+        <hr className="my-2 border-stone-200" />
+        <p className="mb-2 text-xs font-semibold text-stone-700">Dump Sites</p>
+        <div className="space-y-1">
+          {[
+            { label: "Trash Can", color: "#6b7280" },
+            { label: "Recycling Bin", color: "#22c55e" },
+            { label: "Dumpster", color: "#f97316" },
+            { label: "Transfer Station", color: "#3b82f6" },
+            { label: "Landfill", color: "#8b5cf6" },
+            { label: "Compost Site", color: "#10b981" },
+            { label: "Drop-off Center", color: "#ec4899" },
+            { label: "Street Bin", color: "#78716c" },
+          ].map(({ label, color }) => (
+            <div key={label} className="flex items-center gap-2">
+              <span
+                className="h-3 w-3 rounded-sm"
                 style={{ backgroundColor: color }}
               />
               <span className="text-xs text-stone-600">{label}</span>

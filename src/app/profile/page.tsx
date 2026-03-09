@@ -15,7 +15,7 @@ import { ChangePasswordForm } from "@/components/profile/change-password-form";
 import { TierProgress } from "@/components/tier/tier-progress";
 import { TierBadge } from "@/components/tier/tier-badge";
 import { RedemptionHistory } from "@/components/rewards/redemption-history";
-import { Plus, FileText, Star, Trophy, Mail, Shield, Calendar, Gift, Users } from "lucide-react";
+import { Plus, FileText, Star, Trophy, Mail, Shield, Calendar, Gift, Users, Award, Truck, Crown } from "lucide-react";
 import type { Profile } from "@/types";
 
 export default async function ProfilePage() {
@@ -152,6 +152,30 @@ export default async function ProfilePage() {
             <CardContent className="flex flex-col items-center py-4">
               <Trophy className="h-5 w-5 text-amber-600 mb-1" />
               <p className="text-xs font-medium text-stone-700">Challenges</p>
+            </CardContent>
+          </Card>
+        </Link>
+        <Link href="/achievements">
+          <Card className="transition-colors hover:bg-purple-50">
+            <CardContent className="flex flex-col items-center py-4">
+              <Award className="h-5 w-5 text-purple-600 mb-1" />
+              <p className="text-xs font-medium text-stone-700">Badges</p>
+            </CardContent>
+          </Card>
+        </Link>
+        <Link href="/collectors">
+          <Card className="transition-colors hover:bg-stone-50">
+            <CardContent className="flex flex-col items-center py-4">
+              <Truck className="h-5 w-5 text-stone-600 mb-1" />
+              <p className="text-xs font-medium text-stone-700">Collectors</p>
+            </CardContent>
+          </Card>
+        </Link>
+        <Link href="/premium">
+          <Card className="transition-colors hover:bg-yellow-50">
+            <CardContent className="flex flex-col items-center py-4">
+              <Crown className="h-5 w-5 text-yellow-600 mb-1" />
+              <p className="text-xs font-medium text-stone-700">Premium</p>
             </CardContent>
           </Card>
         </Link>

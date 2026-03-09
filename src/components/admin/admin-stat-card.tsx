@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 
 interface AdminStatCardProps {
   title: string;
-  value: number;
+  value: number | string;
   icon: LucideIcon;
   trend?: string;
   className?: string;
@@ -23,7 +23,7 @@ export function AdminStatCard({
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-medium text-muted-foreground">{title}</p>
-            <p className="mt-1 text-3xl font-bold">{value.toLocaleString()}</p>
+            <p className="mt-1 text-3xl font-bold">{typeof value === "number" ? value.toLocaleString() : value}</p>
             {trend && (
               <p className="mt-1 text-xs text-muted-foreground">{trend}</p>
             )}

@@ -141,7 +141,7 @@ export async function initiateTransfer(
   bankCode: string,
   accountName: string,
   amountNaira: number,
-  reason: string = "WasteMap reward redemption"
+  reason: string = "WasteMapNaija reward redemption"
 ): Promise<TransferResult> {
   // Step 1: Create recipient
   const recipientResult = await createRecipient(accountName, accountNumber, bankCode);

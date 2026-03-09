@@ -6,6 +6,7 @@ import { reportSchema } from "@/lib/validators/report";
 import { awardPoints } from "@/lib/actions/points";
 import { updateChallengeProgress } from "@/lib/actions/challenges";
 import { trackReferralMilestone } from "@/lib/actions/referrals";
+import { checkAndAwardAchievements } from "@/lib/actions/achievements";
 import type { ReportStatus } from "@/types";
 
 export async function createReport(formData: FormData) {
@@ -60,9 +61,10 @@ export async function createReport(formData: FormData) {
     updateChallengeProgress(user.id, "photos_uploaded").catch(() => {});
   }
 
-  // Track challenge progress and referral milestones
+  // Track challenge progress, referral milestones, and achievements
   updateChallengeProgress(user.id, "report_created").catch(() => {});
   trackReferralMilestone(user.id, "first_report").catch(() => {});
+  checkAndAwardAchievements(user.id).catch(() => {});
 
   revalidatePath("/");
   revalidatePath("/dashboard");

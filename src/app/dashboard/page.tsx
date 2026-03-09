@@ -14,21 +14,44 @@ import {
   getStatusCounts,
   getReportTrend,
 } from "@/lib/queries/dashboard";
-import { getRecentReports } from "@/lib/queries/reports";
+import { getRecentReports, getReportsByUserId } from "@/lib/queries/reports";
 import { getLeaderboard } from "@/lib/queries/leaderboard";
 import { getUpcomingEvents } from "@/lib/queries/events";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function DashboardPage() {
-  const [stats, categoryCounts, statusCounts, recentReports, trend, topReporters, upcomingEvents] =
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  let isAdmin = false;
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+    isAdmin = profile?.role === "admin";
+  }
+
+  const [stats, categoryCounts, statusCounts, trend, topReporters, upcomingEvents] =
     await Promise.all([
       getDashboardStats(),
       getCategoryCounts(),
       getStatusCounts(),
-      getRecentReports(10),
       getReportTrend(),
       getLeaderboard(5),
       getUpcomingEvents(3),
     ]);
+
+  let recentReports: import("@/types").ReportWithProfile[] = [];
+  if (user) {
+    if (isAdmin) {
+      recentReports = await getRecentReports(5);
+    } else {
+      const allUserReports = await getReportsByUserId(user.id);
+      recentReports = allUserReports.slice(0, 5);
+    }
+  }
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -80,7 +103,7 @@ export default async function DashboardPage() {
           </div>
         )}
 
-        <RecentReports reports={recentReports} />
+        <RecentReports reports={recentReports} isAdmin={isAdmin} />
       </div>
     </div>
   );
