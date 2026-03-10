@@ -1,12 +1,13 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Trophy, TrendingUp } from "lucide-react";
-import { POINT_VALUES, POINT_LABELS } from "@/lib/constants";
+import { POINT_LABELS } from "@/lib/constants";
 import type { PointAction } from "@/lib/constants";
 
 interface UserRankCardProps {
   rank: number;
   points: number;
   name: string;
+  pointValues?: Partial<Record<PointAction, number>>;
 }
 
 const DISPLAY_ACTIONS: PointAction[] = [
@@ -22,7 +23,7 @@ const DISPLAY_ACTIONS: PointAction[] = [
   "event_attended",
 ];
 
-export function UserRankCard({ rank, points, name }: UserRankCardProps) {
+export function UserRankCard({ rank, points, name, pointValues }: UserRankCardProps) {
   return (
     <Card className="border-emerald-200 bg-gradient-to-r from-emerald-50 to-green-50">
       <CardContent className="pt-6">
@@ -49,7 +50,7 @@ export function UserRankCard({ rank, points, name }: UserRankCardProps) {
               <div key={action} className="contents">
                 <span>{POINT_LABELS[action]}</span>
                 <span className="text-right font-medium text-emerald-600">
-                  +{POINT_VALUES[action]}
+                  +{pointValues?.[action] ?? 0}
                 </span>
               </div>
             ))}

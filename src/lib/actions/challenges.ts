@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { awardPoints } from "@/lib/actions/points";
+import { createNotification } from "@/lib/actions/notifications";
 
 export async function joinChallenge(challengeId: string) {
   const supabase = await createClient();
@@ -100,6 +101,15 @@ export async function updateChallengeProgress(
         p_points: challenge.bonus_points,
         p_reason: `Challenge completed: ${challenge.action_type}`,
       });
+
+      // Notify the user about challenge completion
+      createNotification(
+        userId,
+        "challenge_completed",
+        "Challenge Completed!",
+        "You completed the challenge and earned bonus points!",
+        { challengeId: uc.challenge_id, bonusPoints: challenge.bonus_points }
+      ).catch(() => {});
     }
   }
 }

@@ -1,4 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Waste Map",
+  description:
+    "Explore an interactive map of waste reports and dump sites across Nigeria. Report illegal dumping and find disposal locations near you.",
+};
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getAllMapMarkers } from "@/lib/queries/reports";
