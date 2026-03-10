@@ -66,6 +66,7 @@ export default function OGImage() {
           </span>
         </div>
 
+
         <p
           style={{
             fontSize: "28px",
@@ -79,6 +80,7 @@ export default function OGImage() {
           Nigeria&apos;s community-powered platform for reporting and tracking
           illegal waste dumpsites
         </p>
+
 
         <div style={{ display: "flex", gap: "16px" }}>
           {["Map Dumpsites", "Earn Green Points", "Join Cleanups", "Track Impact"].map(
@@ -99,6 +101,7 @@ export default function OGImage() {
             )
           )}
         </div>
+
 
         <p
           style={{

@@ -80,6 +80,18 @@ export default async function EventDetailPage({
         </Button>
       </Link>
 
+      {/* Live Stream — full width, pinned at top */}
+      {user && (isOrganizer || event.is_live) && (
+        <div className="sticky top-14 z-40 mb-6">
+          <LiveStream
+            eventId={event.id}
+            isLive={event.is_live}
+            isOrganizer={isOrganizer}
+            userName={userName}
+          />
+        </div>
+      )}
+
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Main content */}
         <div className="space-y-6 lg:col-span-2">
@@ -189,17 +201,6 @@ export default async function EventDetailPage({
 
         {/* Sidebar */}
         <div className="space-y-6">
-          {/* Live Stream */}
-          {user && (isOrganizer || event.is_live) && (
-            <LiveStream
-              eventId={event.id}
-              eventTitle={event.title}
-              isLive={event.is_live}
-              isOrganizer={isOrganizer}
-              userName={userName}
-            />
-          )}
-
           {/* RSVP */}
           {user && event.status === "upcoming" && (
             <Card>

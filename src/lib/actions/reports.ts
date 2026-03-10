@@ -7,6 +7,7 @@ import { awardPoints } from "@/lib/actions/points";
 import { updateChallengeProgress } from "@/lib/actions/challenges";
 import { trackReferralMilestone } from "@/lib/actions/referrals";
 import { checkAndAwardAchievements } from "@/lib/actions/achievements";
+import { createNotification } from "@/lib/actions/notifications";
 import type { ReportStatus } from "@/types";
 
 export async function createReport(formData: FormData) {
@@ -23,7 +24,7 @@ export async function createReport(formData: FormData) {
   const raw = {
     title: formData.get("title"),
     description: formData.get("description"),
-    category: formData.get("category"),
+    category: formData.getAll("category"),
     severity: formData.get("severity"),
     latitude: Number(formData.get("latitude")),
     longitude: Number(formData.get("longitude")),
@@ -124,6 +125,22 @@ export async function updateReportStatus(
     comment: comment || null,
     photo_urls: photoUrls || [],
   });
+
+  // Notify the report owner about the status change
+  if (report.user_id !== user.id) {
+    const { data: reportData } = await supabase
+      .from("reports")
+      .select("title")
+      .eq("id", reportId)
+      .single();
+    createNotification(
+      report.user_id,
+      "report_status_changed",
+      "Report Status Updated",
+      `Your report '${reportData?.title || "Untitled"}' was updated to ${newStatus}`,
+      { reportId, newStatus }
+    ).catch(() => {});
+  }
 
   // Award points based on status change
   if (newStatus === "acknowledged") {
@@ -234,6 +251,22 @@ export async function toggleUpvote(reportId: string) {
     // Award point for upvoting
     await awardPoints(user.id, "upvoted_report", reportId);
     updateChallengeProgress(user.id, "upvoted_report").catch(() => {});
+
+    // Notify the report owner about the upvote
+    const { data: reportData } = await supabase
+      .from("reports")
+      .select("user_id, title")
+      .eq("id", reportId)
+      .single();
+    if (reportData && reportData.user_id !== user.id) {
+      createNotification(
+        reportData.user_id,
+        "report_upvoted",
+        "Report Upvoted",
+        `Someone upvoted your report '${reportData.title || "Untitled"}'`,
+        { reportId }
+      ).catch(() => {});
+    }
   }
 
   revalidatePath(`/reports/${reportId}`);

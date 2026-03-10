@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { COLLECTOR_COMMISSION_PERCENT, RECYCLING_VALUES } from "@/lib/constants";
+import { createNotification } from "@/lib/actions/notifications";
 
 async function getAuthUser() {
   const supabase = await createClient();
@@ -276,6 +277,15 @@ export async function placeBid(
     return { error: "Failed to place bid." };
   }
 
+  // Notify the report owner about the new bid
+  createNotification(
+    report.user_id,
+    "bid_received",
+    "New Bid Received",
+    `A collector placed a bid of ₦${bidAmount} on your report`,
+    { reportId, bidAmount }
+  ).catch(() => {});
+
   revalidatePath(`/reports/${reportId}`);
   revalidatePath("/collectors/dashboard");
   revalidatePath("/collectors/browse");
@@ -323,6 +333,15 @@ export async function acceptBid(bidId: string) {
     .eq("report_id", bid.report_id)
     .neq("id", bidId)
     .eq("status", "pending");
+
+  // Notify the collector whose bid was accepted
+  createNotification(
+    bid.collector_id,
+    "bid_accepted",
+    "Bid Accepted!",
+    "Your bid was accepted",
+    { bidId, reportId: bid.report_id }
+  ).catch(() => {});
 
   revalidatePath(`/reports/${bid.report_id}`);
   return { success: true };
@@ -473,6 +492,15 @@ export async function completeBid(bidId: string) {
     .from("reports")
     .update({ pickup_type: null })
     .eq("id", bid.report_id);
+
+  // Notify the report owner that the pickup is completed
+  createNotification(
+    report.user_id,
+    "bid_completed",
+    "Pickup Completed",
+    "The collector has completed the pickup",
+    { bidId, reportId: bid.report_id }
+  ).catch(() => {});
 
   revalidatePath(`/reports/${bid.report_id}`);
   revalidatePath("/collectors/dashboard");

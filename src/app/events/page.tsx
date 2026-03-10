@@ -1,4 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Cleanup Events",
+  description:
+    "Join community cleanup events across Nigeria or organize your own. Volunteer to clean up waste sites and earn green points for your contributions.",
+};
 import { CalendarPlus, CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getEvents } from "@/lib/queries/events";

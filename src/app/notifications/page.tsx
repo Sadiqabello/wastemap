@@ -1,9 +1,9 @@
-import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getNotifications } from "@/lib/queries/notifications";
 import { NotificationList } from "@/components/notifications/notification-list";
 import { Bell } from "lucide-react";
+
 
 export const metadata: Metadata = {
   title: "Notifications",

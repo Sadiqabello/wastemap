@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createNotification } from "@/lib/actions/notifications";
 
 async function assertAdmin() {
   const supabase = await createClient();
@@ -48,6 +49,22 @@ export async function updateCollectorStatus(
   if (error) {
     console.error("Error updating collector:", error);
     return { error: "Failed to update collector status." };
+  }
+
+  // Notify the collector about their status change
+  const { data: collector } = await adminClient
+    .from("collector_profiles")
+    .select("user_id")
+    .eq("id", collectorId)
+    .single();
+  if (collector) {
+    createNotification(
+      collector.user_id,
+      "collector_status",
+      "Collector Status Updated",
+      `Your collector registration has been ${status}`,
+      { collectorId, status }
+    ).catch(() => {});
   }
 
   revalidatePath("/admin/collectors");

@@ -1,6 +1,7 @@
 "use server";
 
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createNotification } from "@/lib/actions/notifications";
 
 /**
  * Check and award achievements for a user.
@@ -92,6 +93,15 @@ export async function checkAndAwardAchievements(userId: string) {
           p_reason: `Achievement: ${achievement.name}`,
         });
       }
+
+      // Notify the user about the new achievement
+      createNotification(
+        userId,
+        "achievement_unlocked",
+        "Achievement Unlocked!",
+        `You earned the '${achievement.name}' badge!`,
+        { achievementId: achievement.id }
+      ).catch(() => {});
     }
   }
 

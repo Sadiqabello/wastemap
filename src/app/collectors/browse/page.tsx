@@ -76,7 +76,7 @@ export default async function CollectorBrowsePage() {
         cleanupReports={cleanupReports.map((r) => ({
           id: r.id,
           title: r.title,
-          category: r.category,
+          category: (r.category as unknown as string[]).join(", "),
           severity: r.severity,
           address: r.address,
           estimated_weight_kg: r.estimated_weight_kg,
@@ -85,7 +85,7 @@ export default async function CollectorBrowsePage() {
         recyclingReports={recyclingReports.map((r) => ({
           id: r.id,
           title: r.title,
-          category: r.category,
+          category: (r.category as unknown as string[]).join(", "),
           severity: r.severity,
           address: r.address,
           estimated_weight_kg: r.estimated_weight_kg,

@@ -1,4 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Waste Map",
+  description:
+    "Explore an interactive map of waste reports and dump sites across Nigeria. Report illegal dumping and find disposal locations near you.",
+};
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getAllMapMarkers } from "@/lib/queries/reports";
@@ -18,16 +25,14 @@ export default async function HomePage() {
       {/* Floating Action Button */}
       <Link
         href="/reports/new"
-        className="absolute bottom-6 right-6 z-[999] md:bottom-8 md:right-8 group"
+        className="absolute bottom-8 right-8 z-[999] hidden md:block group"
       >
-        {/* Pulse ring */}
-        <span className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-30 md:hidden" />
         <Button
           size="lg"
-          className="relative h-16 w-16 rounded-full bg-emerald-600 shadow-xl hover:bg-emerald-700 hover:shadow-2xl hover:scale-110 transition-all duration-200 md:h-auto md:w-auto md:rounded-lg md:px-6 md:animate-none animate-bounce"
+          className="relative h-auto w-auto rounded-lg px-6 bg-emerald-600 shadow-xl hover:bg-emerald-700 hover:shadow-2xl hover:scale-110 transition-all duration-200"
         >
-          <Plus className="h-7 w-7 md:mr-2 md:h-5 md:w-5" />
-          <span className="hidden md:inline">Report Waste</span>
+          <Plus className="h-5 w-5 mr-2" />
+          <span>Report Waste</span>
         </Button>
       </Link>
 

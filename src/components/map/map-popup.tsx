@@ -25,7 +25,7 @@ export function MapPopup({ marker }: MapPopupProps) {
         </span>
       </div>
       <p className="text-xs text-stone-500">
-        {CATEGORY_LABELS[marker.category]} waste
+        {marker.category.map((c) => CATEGORY_LABELS[c]).join(", ")} waste
       </p>
       <Link
         href={`/reports/${marker.id}`}

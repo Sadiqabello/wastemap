@@ -1,4 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Dump Sites",
+  description:
+    "Find verified waste disposal and recycling locations across Nigeria. Discover nearby trash bins, dumpsters, transfer stations, and drop-off centers.",
+};
 import { Trash2, Plus, MapPin, Navigation, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

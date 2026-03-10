@@ -4,13 +4,20 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Video, VideoOff, Radio, Loader2 } from "lucide-react";
+import {
+  Video,
+  VideoOff,
+  Radio,
+  Loader2,
+  Maximize2,
+  Minimize2,
+  Pin,
+} from "lucide-react";
 import { toggleLiveStream } from "@/lib/actions/events";
 import { toast } from "sonner";
 
 interface LiveStreamProps {
   eventId: string;
-  eventTitle: string;
   isLive: boolean;
   isOrganizer: boolean;
   userName: string;
@@ -23,13 +30,15 @@ declare global {
       options: Record<string, unknown>
     ) => {
       dispose: () => void;
+      executeCommand: (command: string, ...args: unknown[]) => void;
+      addEventListener: (event: string, handler: (...args: unknown[]) => void) => void;
+      getNumberOfParticipants: () => number;
     };
   }
 }
 
 export function LiveStream({
   eventId,
-  eventTitle,
   isLive,
   isOrganizer,
   userName,
@@ -38,12 +47,16 @@ export function LiveStream({
   const [toggling, setToggling] = useState(false);
   const [joined, setJoined] = useState(false);
   const [scriptLoaded, setScriptLoaded] = useState(false);
+  const [participantCount, setParticipantCount] = useState(0);
+  const [expanded, setExpanded] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const apiRef = useRef<{ dispose: () => void } | null>(null);
+  const apiRef = useRef<ReturnType<typeof window.JitsiMeetExternalAPI.prototype.constructor> | null>(null);
 
+  const jitsiDomain =
+    process.env.NEXT_PUBLIC_JITSI_DOMAIN || "meet.ffmuc.net";
   const roomName = `wastemap-${eventId.replace(/-/g, "").slice(0, 20)}`;
 
-  // Load the Jitsi Meet external API script
+  // Load the Jitsi Meet external API script from the configured domain
   useEffect(() => {
     if (typeof window.JitsiMeetExternalAPI !== "undefined") {
       setScriptLoaded(true);
@@ -51,15 +64,11 @@ export function LiveStream({
     }
 
     const script = document.createElement("script");
-    script.src = "https://meet.jit.si/external_api.js";
+    script.src = `https://${jitsiDomain}/external_api.js`;
     script.async = true;
     script.onload = () => setScriptLoaded(true);
     document.head.appendChild(script);
-
-    return () => {
-      // Don't remove script on unmount — it can be reused
-    };
-  }, []);
+  }, [jitsiDomain]);
 
   // Clean up Jitsi instance on unmount
   useEffect(() => {
@@ -86,7 +95,6 @@ export function LiveStream({
 
     if (newState) {
       toast.success("You are now live! Attendees can join the stream.");
-      // Auto-join as organizer
       startJitsi();
     } else {
       toast.info("Live stream ended.");
@@ -95,6 +103,7 @@ export function LiveStream({
         apiRef.current = null;
       }
       setJoined(false);
+      setParticipantCount(0);
     }
   }
 
@@ -104,16 +113,18 @@ export function LiveStream({
       apiRef.current.dispose();
     }
 
-    const api = new window.JitsiMeetExternalAPI("meet.jit.si", {
+    const api = new window.JitsiMeetExternalAPI(jitsiDomain, {
       roomName,
       parentNode: containerRef.current,
       width: "100%",
-      height: 400,
+      height: "100%",
       configOverwrite: {
         startWithAudioMuted: !isOrganizer,
         startWithVideoMuted: !isOrganizer,
         prejoinPageEnabled: false,
         disableDeepLinking: true,
+        // Pin the host: disable auto tile view for attendees so they see the host prominently
+        startInTileView: false,
         toolbarButtons: isOrganizer
           ? [
               "microphone",
@@ -123,6 +134,7 @@ export function LiveStream({
               "raisehand",
               "participants-pane",
               "tileview",
+              "fullscreen",
               "hangup",
             ]
           : [
@@ -131,21 +143,40 @@ export function LiveStream({
               "chat",
               "raisehand",
               "tileview",
+              "fullscreen",
               "hangup",
             ],
       },
       interfaceConfigOverwrite: {
         SHOW_JITSI_WATERMARK: false,
         SHOW_BRAND_WATERMARK: false,
-        DEFAULT_BACKGROUND: "#1a1a1a",
+        DEFAULT_BACKGROUND: "#0f172a",
         TOOLBAR_ALWAYS_VISIBLE: true,
+        FILM_STRIP_MAX_HEIGHT: 120,
+        DISABLE_VIDEO_BACKGROUND: true,
       },
       userInfo: {
-        displayName: userName,
+        displayName: isOrganizer ? `${userName} (Host)` : userName,
       },
     });
 
-    apiRef.current = api;
+    // Track participant count
+    api.addEventListener("participantJoined", () => {
+      setParticipantCount(api.getNumberOfParticipants());
+    });
+    api.addEventListener("participantLeft", () => {
+      setParticipantCount(api.getNumberOfParticipants());
+    });
+
+    // When attendee joins, pin the host by setting them as dominant speaker display
+    if (!isOrganizer) {
+      api.addEventListener("videoConferenceJoined", () => {
+        // Execute command to set the view to speaker view (host stays prominent)
+        api.executeCommand("setTileView", false);
+      });
+    }
+
+    apiRef.current = api as unknown as { dispose: () => void };
     setJoined(true);
   }
 
@@ -159,74 +190,140 @@ export function LiveStream({
       apiRef.current = null;
     }
     setJoined(false);
+    setParticipantCount(0);
   }
 
-  // Organizer controls
+  // Determine the video container height
+  const videoHeight = joined
+    ? expanded
+      ? "h-[70vh] lg:h-[80vh]"
+      : "h-[300px] md:h-[450px] lg:h-[550px]"
+    : "hidden";
+
+  // Organizer view
   if (isOrganizer) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Video className="h-4 w-4" />
-            Live Stream
-            {live && (
-              <Badge className="bg-red-500 text-white border-0 animate-pulse text-[10px]">
-                LIVE
-              </Badge>
-            )}
-          </CardTitle>
+      <Card className={`border-2 ${live ? "border-red-400 shadow-red-100 shadow-lg" : "border-stone-200"}`}>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Video className="h-5 w-5" />
+              Live Stream
+              {live && (
+                <Badge className="bg-red-500 text-white border-0 animate-pulse text-[10px]">
+                  LIVE
+                </Badge>
+              )}
+            </CardTitle>
+            <div className="flex items-center gap-2">
+              {live && participantCount > 0 && (
+                <span className="text-xs text-stone-500">
+                  {participantCount} watching
+                </span>
+              )}
+              {joined && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setExpanded(!expanded)}
+                  className="h-7 w-7 p-0"
+                >
+                  {expanded ? (
+                    <Minimize2 className="h-4 w-4" />
+                  ) : (
+                    <Maximize2 className="h-4 w-4" />
+                  )}
+                </Button>
+              )}
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="space-y-3">
-          <p className="text-xs text-stone-500">
-            {live
-              ? "Your event is live. Attendees can join and watch."
-              : "Start a live video stream so attendees can watch the cleanup in real time."}
-          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={handleToggleLive}
+              disabled={toggling || !scriptLoaded}
+              variant={live ? "destructive" : "default"}
+              className={`flex-1 ${!live ? "bg-red-600 hover:bg-red-700" : ""}`}
+              size="sm"
+            >
+              {toggling ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : live ? (
+                <VideoOff className="mr-2 h-4 w-4" />
+              ) : (
+                <Radio className="mr-2 h-4 w-4" />
+              )}
+              {toggling
+                ? "Updating..."
+                : live
+                  ? "End Live Stream"
+                  : "Go Live"}
+            </Button>
+          </div>
 
-          <Button
-            onClick={handleToggleLive}
-            disabled={toggling || !scriptLoaded}
-            variant={live ? "destructive" : "default"}
-            className={`w-full ${!live ? "bg-red-600 hover:bg-red-700" : ""}`}
-            size="sm"
-          >
-            {toggling ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : live ? (
-              <VideoOff className="mr-2 h-4 w-4" />
-            ) : (
-              <Radio className="mr-2 h-4 w-4" />
-            )}
-            {toggling
-              ? "Updating..."
-              : live
-                ? "End Live Stream"
-                : "Go Live"}
-          </Button>
+          {!live && !joined && (
+            <p className="text-xs text-stone-500">
+              Start a live video stream so attendees can watch the cleanup in real time.
+            </p>
+          )}
+
+          {/* Host pinned indicator */}
+          {joined && (
+            <div className="flex items-center gap-1.5 rounded-md bg-emerald-50 px-2.5 py-1.5 text-xs text-emerald-700">
+              <Pin className="h-3 w-3" />
+              You are pinned as host. Attendees see you prominently.
+            </div>
+          )}
 
           {/* Jitsi container */}
           <div
             ref={containerRef}
-            className={`overflow-hidden rounded-lg ${joined ? "" : "hidden"}`}
+            className={`overflow-hidden rounded-lg bg-slate-900 ${videoHeight}`}
           />
         </CardContent>
       </Card>
     );
   }
 
-  // Attendee view
+  // Attendee view — only show when live
   if (!live) return null;
 
   return (
-    <Card className="border-red-200">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-base">
-          <Video className="h-4 w-4 text-red-500" />
-          Live Stream
-          <Badge className="bg-red-500 text-white border-0 animate-pulse text-[10px]">
-            LIVE
-          </Badge>
-        </CardTitle>
+    <Card className="border-2 border-red-400 shadow-red-100 shadow-lg">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Video className="h-5 w-5 text-red-500" />
+            Live Stream
+            <Badge className="bg-red-500 text-white border-0 animate-pulse text-[10px]">
+              LIVE
+            </Badge>
+          </CardTitle>
+          <div className="flex items-center gap-2">
+            {joined && participantCount > 0 && (
+              <span className="text-xs text-stone-500">
+                {participantCount} watching
+              </span>
+            )}
+            {joined && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setExpanded(!expanded)}
+                className="h-7 w-7 p-0"
+              >
+                {expanded ? (
+                  <Minimize2 className="h-4 w-4" />
+                ) : (
+                  <Maximize2 className="h-4 w-4" />
+                )}
+              </Button>
+            )}
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="space-y-3">
         {!joined ? (
@@ -263,7 +360,7 @@ export function LiveStream({
         {/* Jitsi container */}
         <div
           ref={containerRef}
-          className={`overflow-hidden rounded-lg ${joined ? "" : "hidden"}`}
+          className={`overflow-hidden rounded-lg bg-slate-900 ${videoHeight}`}
         />
       </CardContent>
     </Card>

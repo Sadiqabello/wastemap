@@ -25,7 +25,7 @@ export function ReportForm() {
   const [address, setAddress] = useState("");
   const [location, setLocation] = useState<[number, number] | null>(null);
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
-  const [category, setCategory] = useState<WasteCategory | "">("");
+  const [categories, setCategories] = useState<WasteCategory[]>([]);
   const [severity, setSeverity] = useState<SeverityLevel | "">("");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -43,8 +43,8 @@ export function ReportForm() {
       toast.error("Please select a location on the map");
       return;
     }
-    if (!category) {
-      toast.error("Please select a waste category");
+    if (categories.length === 0) {
+      toast.error("Please select at least one waste category");
       return;
     }
     if (!severity) {
@@ -59,7 +59,7 @@ export function ReportForm() {
     formData.set("description", description.trim());
     formData.set("latitude", String(location[0]));
     formData.set("longitude", String(location[1]));
-    formData.set("category", category);
+    categories.forEach((cat) => formData.append("category", cat));
     formData.set("severity", severity);
     if (address.trim()) formData.set("address", address.trim());
     photoUrls.forEach((url) => formData.append("photoUrls", url));
@@ -147,7 +147,7 @@ export function ReportForm() {
           <CardTitle className="text-lg">Classification</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          <CategorySelect value={category} onChange={setCategory} />
+          <CategorySelect value={categories} onChange={setCategories} />
           <SeveritySelect value={severity} onChange={setSeverity} />
         </CardContent>
       </Card>

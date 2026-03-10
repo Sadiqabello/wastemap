@@ -90,7 +90,7 @@ export async function getCollectorBids(collectorId: string): Promise<BidWithRepo
       const r = reportMap.get(bid.report_id);
       bid.reports = r
         ? { title: r.title, category: r.category, severity: r.severity, address: r.address }
-        : { title: "Unknown", category: "other", severity: "low", address: null };
+        : { title: "Unknown", category: ["other"], severity: "low", address: null };
     }
   }
 

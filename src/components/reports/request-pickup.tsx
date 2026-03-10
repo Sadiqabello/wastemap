@@ -12,7 +12,7 @@ import { RECYCLING_VALUES } from "@/lib/constants";
 
 interface RequestPickupProps {
   reportId: string;
-  category: string;
+  category: string[];
   currentPickupType: "cleanup" | "recycling" | null;
   isOwner: boolean;
 }
@@ -28,7 +28,7 @@ export function RequestPickup({
 
   if (!isOwner) return null;
 
-  const recyclingValue = RECYCLING_VALUES[category];
+  const recyclingValue = RECYCLING_VALUES[category[0]];
 
   async function handleRequest(type: "cleanup" | "recycling") {
     setLoading(type);

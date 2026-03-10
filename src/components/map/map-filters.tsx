@@ -46,7 +46,7 @@ export function MapFilters({ markers, onFilter }: MapFiltersProps) {
       filtered = filtered.filter((m) => m.title.toLowerCase().includes(q));
     }
     if (cats.length > 0) {
-      filtered = filtered.filter((m) => cats.includes(m.category));
+      filtered = filtered.filter((m) => m.category.some((c) => cats.includes(c)));
     }
     if (sevs.length > 0) {
       filtered = filtered.filter((m) => sevs.includes(m.severity));

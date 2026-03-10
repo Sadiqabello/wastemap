@@ -26,26 +26,35 @@ const CATEGORY_ICON_MAP: Record<WasteCategory, React.ComponentType<{ className?:
 };
 
 interface CategorySelectProps {
-  value: WasteCategory | "";
-  onChange: (category: WasteCategory) => void;
+  value: WasteCategory[];
+  onChange: (categories: WasteCategory[]) => void;
 }
 
 export function CategorySelect({ value, onChange }: CategorySelectProps) {
+  const toggleCategory = (category: WasteCategory) => {
+    if (value.includes(category)) {
+      onChange(value.filter((c) => c !== category));
+    } else {
+      onChange([...value, category]);
+    }
+  };
+
   return (
     <div className="space-y-2">
       <label className="text-sm font-medium">
         Waste Category <span className="text-red-500">*</span>
+        <span className="ml-1 text-xs font-normal text-stone-500">(select all that apply)</span>
       </label>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         {(Object.keys(CATEGORY_LABELS) as WasteCategory[]).map((category) => {
           const Icon = CATEGORY_ICON_MAP[category];
-          const isSelected = value === category;
+          const isSelected = value.includes(category);
 
           return (
             <button
               key={category}
               type="button"
-              onClick={() => onChange(category)}
+              onClick={() => toggleCategory(category)}
               className={cn(
                 "flex flex-col items-center gap-1.5 rounded-lg border-2 p-3 transition-all",
                 isSelected

@@ -1,4 +1,11 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+
+export const metadata: Metadata = {
+  title: "Redeem Rewards",
+  description:
+    "Convert your green points into airtime, mobile data, or cash rewards. Track your tier progress and redemption history on WasteMapNaija.",
+};
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getUserRedemptions } from "@/lib/queries/rewards";

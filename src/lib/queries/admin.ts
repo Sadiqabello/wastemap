@@ -349,9 +349,9 @@ export async function getAllReportsAdmin(
   }
 
   if (categoryFilter && categoryFilter !== "all") {
-    query = query.eq(
+    query = query.contains(
       "category",
-      categoryFilter as "household" | "industrial" | "hazardous" | "electronic" | "construction" | "medical" | "organic" | "other"
+      [categoryFilter as "household" | "industrial" | "hazardous" | "electronic" | "construction" | "medical" | "organic" | "other"]
     );
   }
 

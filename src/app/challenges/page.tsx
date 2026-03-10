@@ -1,4 +1,11 @@
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
+
+export const metadata: Metadata = {
+  title: "Challenges",
+  description:
+    "Take on waste reporting challenges and earn bonus green points. Complete time-limited tasks to boost your rank and make a bigger impact in Nigeria.",
+};
 import { getActiveChallenges, getChallengesWithProgress } from "@/lib/queries/challenges";
 import { ChallengeCard } from "@/components/challenges/challenge-card";
 import { Target } from "lucide-react";

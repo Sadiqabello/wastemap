@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { toast } from "sonner";
 import { compressImage } from "@/lib/compress-image";
-import { Camera, Loader2, X, Upload } from "lucide-react";
+import { Camera, Loader2, X } from "lucide-react";
+import { CameraCapture } from "@/components/camera-capture";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/providers/auth-provider";
 import { addDumpSite } from "@/lib/actions/dump-sites";
@@ -38,13 +39,15 @@ export function AddDumpSiteForm() {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [cameraOpen, setCameraOpen] = useState(false);
 
   const photoUrlsRef = useRef(photoUrls);
   photoUrlsRef.current = photoUrls;
 
   const handlePhotoCapture = useCallback(
-    async (files: FileList | null) => {
-      if (!files || files.length === 0) return;
+    async (blob: Blob) => {
+      setCameraOpen(false);
+
       if (!user) {
         toast.error("You must be signed in to upload photos");
         return;
@@ -53,73 +56,52 @@ export function AddDumpSiteForm() {
       const remaining = MAX_PHOTOS - photoUrlsRef.current.length;
       if (remaining <= 0) return;
 
-      const filesToUpload = Array.from(files).slice(0, remaining);
       setUploading(true);
-      setUploadProgress(`Compressing ${filesToUpload.length} photo${filesToUpload.length > 1 ? "s" : ""}...`);
+      setUploadProgress("Compressing photo...");
 
       const supabase = createClient();
 
       try {
-        // Compress all images in parallel
-        const compressed = await Promise.all(
-          filesToUpload.map(async (file) => {
-            try {
-              const blob = await compressImage(file);
-              return { blob, name: file.name };
-            } catch {
-              return { blob: file as Blob, name: file.name };
-            }
-          })
-        );
-
-        setUploadProgress(`Uploading ${compressed.length} photo${compressed.length > 1 ? "s" : ""}...`);
-
-        // Upload all in parallel
-        const results = await Promise.all(
-          compressed.map(async ({ blob, name }) => {
-            const ext = name.split(".").pop() || "jpg";
-            const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-
-            // Try dump-site-photos bucket first, fall back to report-photos
-            let bucket = "dump-site-photos";
-            let actualPath = fileName;
-
-            const { error: err1 } = await supabase.storage
-              .from(bucket)
-              .upload(fileName, blob, { contentType: "image/jpeg" });
-
-            if (err1) {
-              bucket = "report-photos";
-              actualPath = `dump-sites/${fileName}`;
-              const { error: err2 } = await supabase.storage
-                .from(bucket)
-                .upload(actualPath, blob, { contentType: "image/jpeg" });
-
-              if (err2) {
-                console.error("Upload error:", err2);
-                return null;
-              }
-            }
-
-            const {
-              data: { publicUrl },
-            } = supabase.storage.from(bucket).getPublicUrl(actualPath);
-
-            return publicUrl;
-          })
-        );
-
-        const uploadedUrls = results.filter(Boolean) as string[];
-
-        if (uploadedUrls.length > 0) {
-          const updated = [...photoUrlsRef.current, ...uploadedUrls];
-          setPhotoUrls(updated);
-          toast.success(
-            `${uploadedUrls.length} photo${uploadedUrls.length > 1 ? "s" : ""} uploaded`
-          );
-        } else if (filesToUpload.length > 0) {
-          toast.error("No photos were uploaded. Please try again.");
+        let compressed: Blob;
+        try {
+          const file = new File([blob], "camera-photo.jpg", { type: "image/jpeg" });
+          compressed = await compressImage(file);
+        } catch {
+          compressed = blob;
         }
+
+        setUploadProgress("Uploading photo...");
+
+        const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
+
+        // Try dump-site-photos bucket first, fall back to report-photos
+        let bucket = "dump-site-photos";
+        let actualPath = fileName;
+
+        const { error: err1 } = await supabase.storage
+          .from(bucket)
+          .upload(fileName, compressed, { contentType: "image/jpeg" });
+
+        if (err1) {
+          bucket = "report-photos";
+          actualPath = `dump-sites/${fileName}`;
+          const { error: err2 } = await supabase.storage
+            .from(bucket)
+            .upload(actualPath, compressed, { contentType: "image/jpeg" });
+
+          if (err2) {
+            console.error("Upload error:", err2);
+            toast.error("Upload failed. Please try again.");
+            return;
+          }
+        }
+
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from(bucket).getPublicUrl(actualPath);
+
+        setPhotoUrls((prev) => [...prev, publicUrl]);
+        toast.success("Photo uploaded");
       } catch (error) {
         console.error("Upload failed:", error);
         toast.error("Upload failed. Please try again.");
@@ -346,45 +328,19 @@ export function AddDumpSiteForm() {
             )}
 
             {photoUrls.length < MAX_PHOTOS && !uploading && (
-              <div className="flex gap-2">
-                {/* Camera button — opens camera directly on mobile */}
-                <label className="flex flex-1 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-stone-300 bg-stone-50 px-4 py-6 transition-colors hover:border-emerald-400 hover:bg-emerald-50">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    capture="environment"
-                    onChange={(e) => {
-                      handlePhotoCapture(e.target.files);
-                      e.target.value = "";
-                    }}
-                    className="hidden"
-                  />
-                  <div className="mb-2 rounded-full bg-emerald-100 p-2">
-                    <Camera className="h-6 w-6 text-emerald-600" />
-                  </div>
-                  <span className="text-sm font-medium text-stone-700">Take Photo</span>
-                  <span className="text-xs text-stone-500">Open camera</span>
-                </label>
-
-                {/* Gallery button — pick from gallery, allows multiple */}
-                <label className="flex flex-1 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-stone-300 bg-stone-50 px-4 py-6 transition-colors hover:border-emerald-400 hover:bg-emerald-50">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={(e) => {
-                      handlePhotoCapture(e.target.files);
-                      e.target.value = "";
-                    }}
-                    className="hidden"
-                  />
-                  <div className="mb-2 rounded-full bg-emerald-100 p-2">
-                    <Upload className="h-6 w-6 text-emerald-600" />
-                  </div>
-                  <span className="text-sm font-medium text-stone-700">Gallery</span>
-                  <span className="text-xs text-stone-500">Choose photos</span>
-                </label>
-              </div>
+              <button
+                type="button"
+                onClick={() => setCameraOpen(true)}
+                className="flex w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-stone-300 bg-stone-50 px-4 py-6 transition-colors hover:border-emerald-400 hover:bg-emerald-50"
+              >
+                <div className="mb-2 rounded-full bg-emerald-100 p-2">
+                  <Camera className="h-6 w-6 text-emerald-600" />
+                </div>
+                <span className="text-sm font-medium text-stone-700">
+                  {photoUrls.length === 0 ? "Take Photo" : "Take Another Photo"}
+                </span>
+                <span className="text-xs text-stone-500">Opens your camera</span>
+              </button>
             )}
 
             {uploading && (
@@ -392,6 +348,14 @@ export function AddDumpSiteForm() {
                 <Loader2 className="mb-2 h-8 w-8 animate-spin text-emerald-600" />
                 <span className="text-sm text-stone-600">{uploadProgress || "Uploading..."}</span>
               </div>
+            )}
+
+            {/* Full-screen camera overlay */}
+            {cameraOpen && (
+              <CameraCapture
+                onCapture={handlePhotoCapture}
+                onClose={() => setCameraOpen(false)}
+              />
             )}
           </div>
 

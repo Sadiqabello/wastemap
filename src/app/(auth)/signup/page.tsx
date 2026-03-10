@@ -27,6 +27,7 @@ export default function SignUpPage() {
       setSuccess(result.message);
       setLoading(false);
     } else if (result?.redirectTo) {
+      // Auto-confirmed signup — navigate and refresh to update auth state
       router.push(result.redirectTo);
       router.refresh();
     }
