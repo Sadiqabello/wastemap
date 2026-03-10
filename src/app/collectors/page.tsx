@@ -122,8 +122,7 @@ export default async function CollectorsPage() {
             <Link href="/collectors/dashboard" className="flex-1 sm:flex-none">
               <Button
                 size="lg"
-                variant="outline"
-                className="w-full sm:w-auto border-white/40 text-white hover:bg-white/10 gap-2"
+                className="w-full sm:w-auto bg-white text-emerald-700 hover:bg-emerald-50 font-semibold gap-2"
               >
                 <LayoutDashboard className="h-4 w-4" />
                 Go to Dashboard
