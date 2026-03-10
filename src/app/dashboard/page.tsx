@@ -1,4 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Dashboard",
+  description:
+    "Track waste reporting statistics, resolution rates, and community impact across Nigeria. View trends, top contributors, and upcoming cleanup events.",
+};
 import { CalendarDays } from "lucide-react";
 import { StatsGrid } from "@/components/dashboard/stats-grid";
 import { CategoryChart } from "@/components/dashboard/category-chart";

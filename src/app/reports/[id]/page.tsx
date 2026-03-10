@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -6,6 +7,27 @@ import { getReportById } from "@/lib/queries/reports";
 import { getBidsForReport } from "@/lib/queries/collectors";
 import { createClient } from "@/lib/supabase/server";
 import { CATEGORY_LABELS, SEVERITY_LABELS, SEVERITY_COLORS } from "@/lib/constants";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const report = await getReportById(id);
+
+  if (!report) {
+    return { title: "Report Not Found" };
+  }
+
+  const categories = report.category.map((c) => CATEGORY_LABELS[c]).join(", ");
+  const severity = SEVERITY_LABELS[report.severity];
+
+  return {
+    title: report.title,
+    description: `${severity} severity waste report: ${categories}. ${report.address ? `Located at ${report.address}. ` : ""}View details, status updates, and community support on WasteMapNaija.`,
+  };
+}
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

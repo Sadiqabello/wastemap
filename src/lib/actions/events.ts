@@ -6,6 +6,7 @@ import { eventSchema } from "@/lib/validators/event";
 import { awardPoints } from "@/lib/actions/points";
 import { updateChallengeProgress } from "@/lib/actions/challenges";
 import { trackReferralMilestone } from "@/lib/actions/referrals";
+import { createNotification } from "@/lib/actions/notifications";
 
 export async function createEvent(formData: FormData) {
   const supabase = await createClient();
@@ -110,6 +111,28 @@ export async function joinEvent(eventId: string, status: "going" | "interested")
     // Award points for joining an event (first time only, enforced by DB unique constraint)
     await awardPoints(user.id, "event_joined", undefined, eventId);
     trackReferralMilestone(user.id, "first_event").catch(() => {});
+
+    // Notify the event organizer about the RSVP
+    const { data: event } = await supabase
+      .from("events")
+      .select("organizer_id")
+      .eq("id", eventId)
+      .single();
+    if (event && event.organizer_id !== user.id) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", user.id)
+        .single();
+      const userName = profile?.full_name || "Someone";
+      createNotification(
+        event.organizer_id,
+        "event_rsvp",
+        "New RSVP",
+        `${userName} is ${status} to your event`,
+        { eventId, status }
+      ).catch(() => {});
+    }
   }
 
   revalidatePath(`/events/${eventId}`);

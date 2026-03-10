@@ -1,4 +1,11 @@
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
+
+export const metadata: Metadata = {
+  title: "Waste Collectors",
+  description:
+    "Browse verified waste collectors in Nigeria. Request pickups, compare bids, and connect with professional collectors for reliable waste disposal.",
+};
 import { getVerifiedCollectors } from "@/lib/queries/collectors";
 import { CollectorCard } from "@/components/collectors/collector-card";
 import { Card, CardContent } from "@/components/ui/card";

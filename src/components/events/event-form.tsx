@@ -27,25 +27,58 @@ export function EventForm({
 }: EventFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [eventDate, setEventDate] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
+  const [maxAttendees, setMaxAttendees] = useState("");
+  const [address, setAddress] = useState(defaultAddress || "");
+  const [toolsProvided, setToolsProvided] = useState("");
+  const [toolsNeeded, setToolsNeeded] = useState("");
   const [location, setLocation] = useState<[number, number] | null>(
     defaultLat && defaultLng ? [defaultLat, defaultLng] : null
   );
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
+    if (!title.trim() || title.trim().length < 5) {
+      toast.error("Title must be at least 5 characters");
+      return;
+    }
+    if (!description.trim() || description.trim().length < 10) {
+      toast.error("Description must be at least 10 characters");
+      return;
+    }
+    if (!eventDate) {
+      toast.error("Please select a date");
+      return;
+    }
+    if (!startTime) {
+      toast.error("Please select a start time");
+      return;
+    }
     if (!location) {
       toast.error("Please select a location on the map");
       return;
     }
 
     setLoading(true);
-    const form = e.currentTarget;
-    const formData = new FormData(form);
+
+    const formData = new FormData();
+    formData.set("title", title.trim());
+    formData.set("description", description.trim());
+    formData.set("event_date", eventDate);
+    formData.set("start_time", startTime);
+    if (endTime) formData.set("end_time", endTime);
     formData.set("latitude", String(location[0]));
     formData.set("longitude", String(location[1]));
-    if (reportId) {
-      formData.append("reportIds", reportId);
-    }
+    if (address.trim()) formData.set("address", address.trim());
+    if (maxAttendees) formData.set("max_attendees", maxAttendees);
+    if (toolsProvided.trim()) formData.set("tools_provided", toolsProvided.trim());
+    if (toolsNeeded.trim()) formData.set("tools_needed", toolsNeeded.trim());
+    if (reportId) formData.append("reportIds", reportId);
 
     const result = await createEvent(formData);
 
@@ -73,10 +106,9 @@ export function EventForm({
             <Label htmlFor="title">Event Title</Label>
             <Input
               id="title"
-              name="title"
               placeholder="Community Cleanup at..."
-              required
-              minLength={5}
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
               maxLength={100}
             />
           </div>
@@ -84,10 +116,10 @@ export function EventForm({
             <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
-              name="description"
               placeholder="Describe the cleanup event, what areas will be covered, what to expect..."
-              required
-              minLength={10}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              maxLength={2000}
               rows={4}
             />
           </div>
@@ -96,9 +128,9 @@ export function EventForm({
               <Label htmlFor="event_date">Date</Label>
               <Input
                 id="event_date"
-                name="event_date"
                 type="date"
-                required
+                value={eventDate}
+                onChange={(e) => setEventDate(e.target.value)}
                 min={new Date().toISOString().split("T")[0]}
               />
             </div>
@@ -106,25 +138,31 @@ export function EventForm({
               <Label htmlFor="start_time">Start Time</Label>
               <Input
                 id="start_time"
-                name="start_time"
                 type="time"
-                required
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
               />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="end_time">End Time (optional)</Label>
-              <Input id="end_time" name="end_time" type="time" />
+              <Input
+                id="end_time"
+                type="time"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+              />
             </div>
             <div>
               <Label htmlFor="max_attendees">Max Attendees (optional)</Label>
               <Input
                 id="max_attendees"
-                name="max_attendees"
                 type="number"
                 min={1}
                 placeholder="Unlimited"
+                value={maxAttendees}
+                onChange={(e) => setMaxAttendees(e.target.value)}
               />
             </div>
           </div>
@@ -140,9 +178,9 @@ export function EventForm({
             <Label htmlFor="address">Address (optional)</Label>
             <Input
               id="address"
-              name="address"
               placeholder="Enter meeting point address"
-              defaultValue={defaultAddress}
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
             />
           </div>
           <LocationPicker
@@ -163,8 +201,9 @@ export function EventForm({
             </Label>
             <Textarea
               id="tools_provided"
-              name="tools_provided"
               placeholder="e.g., Trash bags, gloves, grabbers..."
+              value={toolsProvided}
+              onChange={(e) => setToolsProvided(e.target.value)}
               rows={2}
             />
           </div>
@@ -174,8 +213,9 @@ export function EventForm({
             </Label>
             <Textarea
               id="tools_needed"
-              name="tools_needed"
               placeholder="e.g., Bring your own water bottle, sunscreen..."
+              value={toolsNeeded}
+              onChange={(e) => setToolsNeeded(e.target.value)}
               rows={2}
             />
           </div>
@@ -184,7 +224,7 @@ export function EventForm({
 
       <Button
         type="submit"
-        disabled={loading || !location}
+        disabled={loading}
         className="w-full bg-emerald-600 hover:bg-emerald-700"
       >
         {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

@@ -1,6 +1,5 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 export async function signUp(formData: FormData) {
@@ -40,8 +39,8 @@ export async function signUp(formData: FormData) {
     };
   }
 
-  // Auto-confirmed (email confirmation disabled) — redirect to home
-  redirect("/");
+  // Auto-confirmed (email confirmation disabled)
+  return { success: true, redirectTo: "/" };
 }
 
 export async function signIn(formData: FormData) {
@@ -69,12 +68,12 @@ export async function signIn(formData: FormData) {
     return { error: error.message };
   }
 
-  const redirectTo = formData.get("redirectTo") as string;
-  redirect(redirectTo || "/");
+  const redirectTo = (formData.get("redirectTo") as string) || "/";
+  return { success: true, redirectTo };
 }
 
 export async function signOut() {
   const supabase = await createClient();
   await supabase.auth.signOut();
-  redirect("/");
+  return { success: true };
 }

@@ -12,6 +12,7 @@ import {
   createUserSchema,
 } from "@/lib/validators/admin";
 import { awardPoints } from "@/lib/actions/points";
+import { createNotification } from "@/lib/actions/notifications";
 import type { Database } from "@/types/database";
 
 async function assertAdmin() {
@@ -125,6 +126,15 @@ export async function adjustUserPoints(
     console.error("Error updating points:", updateError);
     return { error: `Failed to update points: ${updateError.message}` };
   }
+
+  // Notify the user about the points adjustment
+  createNotification(
+    parsed.data.userId,
+    "admin_adjustment",
+    "Points Adjusted",
+    `An admin adjusted your points by ${parsed.data.points}: ${parsed.data.reason}`,
+    { points: parsed.data.points, reason: parsed.data.reason }
+  ).catch(() => {});
 
   revalidateAdmin();
   revalidatePath("/leaderboard");

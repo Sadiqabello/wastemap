@@ -52,6 +52,7 @@ export async function middleware(request: NextRequest) {
     "/collectors/dashboard",
     "/events/new",
     "/dump-sites/new",
+    "/notifications",
     "/admin",
   ];
   const isProtected = protectedPaths.some((path) =>

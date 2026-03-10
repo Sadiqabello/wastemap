@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/providers/auth-provider";
 import { signOut } from "@/lib/actions/auth";
 import { Button } from "@/components/ui/button";
@@ -13,8 +13,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MapPin, Plus, User, LogOut, Trophy, Star, Shield, Gift, Users, Target, Award, Crown, Truck, Lightbulb, Trash2 } from "lucide-react";
+import { MapPin, Plus, User, LogOut, Trophy, Star, Shield, Gift, Users, Target, Award, Crown, Truck, Lightbulb, Trash2, Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { NotificationBell } from "@/components/notifications/notification-bell";
 
 const navLinks = [
   { href: "/", label: "Map" },
@@ -29,6 +30,7 @@ const navLinks = [
 
 export function Header() {
   const pathname = usePathname();
+  const router = useRouter();
   const { user, profile, loading } = useAuth();
 
   const initials = profile?.full_name
@@ -93,6 +95,7 @@ export function Header() {
                   </div>
                 </Link>
               )}
+              <NotificationBell />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -122,6 +125,12 @@ export function Header() {
                     )}
                   </div>
                   <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href="/notifications" className="cursor-pointer">
+                      <Bell className="mr-2 h-4 w-4" />
+                      Notifications
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href="/profile" className="cursor-pointer">
                       <User className="mr-2 h-4 w-4" />
@@ -192,7 +201,11 @@ export function Header() {
                   )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
-                    onClick={() => signOut()}
+                    onClick={async () => {
+                      await signOut();
+                      router.push("/");
+                      router.refresh();
+                    }}
                     className="cursor-pointer text-red-600"
                   >
                     <LogOut className="mr-2 h-4 w-4" />

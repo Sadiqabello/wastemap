@@ -1,6 +1,14 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
+
+export const metadata: Metadata = {
+  title: "Leaderboard",
+  description:
+    "See the top waste reporting contributors in Nigeria ranked by green points. Compare your rank and climb the leaderboard weekly, monthly, or all-time.",
+};
 import { createClient } from "@/lib/supabase/server";
 import { getLeaderboard, getUserRank } from "@/lib/queries/leaderboard";
+import { getPointValues } from "@/lib/queries/settings";
 import type { TimePeriod } from "@/lib/queries/leaderboard";
 import { LeaderboardTable } from "@/components/leaderboard/leaderboard-table";
 import { UserRankCard } from "@/components/leaderboard/user-rank-card";
@@ -22,7 +30,10 @@ export default async function LeaderboardPage({ searchParams }: PageProps) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const leaderboard = await getLeaderboard(20, period);
+  const [leaderboard, pointValues] = await Promise.all([
+    getLeaderboard(20, period),
+    getPointValues(),
+  ]);
 
   let userRank: { rank: number; points: number } | null = null;
   let userName = "";
@@ -61,6 +72,7 @@ export default async function LeaderboardPage({ searchParams }: PageProps) {
             rank={userRank.rank}
             points={userRank.points}
             name={userName}
+            pointValues={pointValues}
           />
         </div>
       )}

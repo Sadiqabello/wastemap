@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { createRewardSchema, createChallengeSchema } from "@/lib/validators/rewards";
+import { createNotification } from "@/lib/actions/notifications";
 import type { Database } from "@/types/database";
 
 async function assertAdmin() {
@@ -153,6 +154,15 @@ export async function updateRedemptionStatus(
             action: `Reward refund: ${redemptionId}`,
             points: redemption.points_spent,
           });
+
+        // Notify the user about the refund
+        createNotification(
+          redemption.user_id,
+          "redemption_update",
+          "Redemption Refunded",
+          "Your redemption has been refunded and points restored",
+          { redemptionId, pointsRefunded: redemption.points_spent }
+        ).catch(() => {});
       }
     }
   }
