@@ -25,10 +25,20 @@ const AuthContext = createContext<AuthContextType>({
   refreshProfile: async () => {},
 });
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
+interface AuthProviderProps {
+  children: ReactNode;
+  initialUser?: User | null;
+  initialProfile?: Profile | null;
+}
+
+export function AuthProvider({
+  children,
+  initialUser = null,
+  initialProfile = null,
+}: AuthProviderProps) {
+  const [user, setUser] = useState<User | null>(initialUser);
+  const [profile, setProfile] = useState<Profile | null>(initialProfile);
+  const [loading, setLoading] = useState(!initialUser);
   const supabase = createClient();
 
   async function fetchProfile(userId: string) {
@@ -46,29 +56,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  // Sync state when server-provided props change (after login/logout redirect)
   useEffect(() => {
-    const getSession = async () => {
-      const {
-        data: { user: currentUser },
-      } = await supabase.auth.getUser();
-      setUser(currentUser);
+    setUser(initialUser);
+    setProfile(initialProfile);
+    setLoading(false);
+  }, [initialUser?.id, initialProfile?.id]);
 
-      if (currentUser) {
-        await fetchProfile(currentUser.id);
-      }
-
-      setLoading(false);
-    };
-
-    getSession();
-
+  useEffect(() => {
+    // Listen for auth changes (login, logout, token refresh)
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setUser(session?.user ?? null);
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      // Skip INITIAL_SESSION — we already have server state
+      if (event === "INITIAL_SESSION") return;
 
-      if (session?.user) {
-        await fetchProfile(session.user.id);
+      const newUser = session?.user ?? null;
+      setUser(newUser);
+
+      if (newUser) {
+        await fetchProfile(newUser.id);
       } else {
         setProfile(null);
       }
