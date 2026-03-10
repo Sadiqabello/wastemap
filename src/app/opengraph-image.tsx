@@ -10,7 +10,8 @@ export default function OGImage() {
     (
       <div
         style={{
-          background: "linear-gradient(135deg, #059669 0%, #0d9488 50%, #065f46 100%)",
+          background:
+            "linear-gradient(135deg, #059669 0%, #0d9488 50%, #065f46 100%)",
           width: "100%",
           height: "100%",
           display: "flex",
@@ -20,7 +21,6 @@ export default function OGImage() {
           fontFamily: "sans-serif",
         }}
       >
-        {/* Logo area */}
         <div
           style={{
             display: "flex",
@@ -66,7 +66,7 @@ export default function OGImage() {
           </span>
         </div>
 
-        {/* Tagline */}
+
         <p
           style={{
             fontSize: "28px",
@@ -81,7 +81,7 @@ export default function OGImage() {
           illegal waste dumpsites
         </p>
 
-        {/* Feature pills */}
+
         <div style={{ display: "flex", gap: "16px" }}>
           {["Map Dumpsites", "Earn Green Points", "Join Cleanups", "Track Impact"].map(
             (label) => (
@@ -102,7 +102,7 @@ export default function OGImage() {
           )}
         </div>
 
-        {/* Bottom URL */}
+
         <p
           style={{
             position: "absolute",
@@ -111,7 +111,7 @@ export default function OGImage() {
             color: "rgba(255,255,255,0.5)",
           }}
         >
-          wastemapnaija.ng
+          wastemapnaija.com.ng
         </p>
       </div>
     ),

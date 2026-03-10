@@ -16,6 +16,7 @@ import {
   Leaf,
   Banknote,
   Trash2,
+  FileBarChart,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -30,6 +31,7 @@ const sidebarLinks = [
   { href: "/admin/sponsorships", label: "Sponsorships", icon: Handshake },
   { href: "/admin/carbon", label: "Carbon Impact", icon: Leaf },
   { href: "/admin/revenue", label: "Revenue", icon: Banknote },
+  { href: "/admin/generate-report", label: "Generate Report", icon: FileBarChart },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 

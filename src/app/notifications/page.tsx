@@ -4,6 +4,13 @@ import { getNotifications } from "@/lib/queries/notifications";
 import { NotificationList } from "@/components/notifications/notification-list";
 import { Bell } from "lucide-react";
 
+
+export const metadata: Metadata = {
+  title: "Notifications",
+  description:
+    "View your notifications for points earned, report updates, event RSVPs, collector bids, and achievements on WasteMapNaija.",
+};
+
 export default async function NotificationsPage() {
   const supabase = await createClient();
   const {

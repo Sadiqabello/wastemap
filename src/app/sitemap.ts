@@ -1,6 +1,8 @@
 import type { MetadataRoute } from "next";
 
-const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://wastemapnaija.ng";
+
+const siteUrl =
+  process.env.NEXT_PUBLIC_APP_URL || "https://wastemapnaija.com.ng";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const staticPages = [
