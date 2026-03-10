@@ -68,7 +68,7 @@ export type Database = {
           user_id: string;
           title: string;
           description: string;
-          category: Database["public"]["Enums"]["waste_category"];
+          category: Database["public"]["Enums"]["waste_category"][];
           severity: Database["public"]["Enums"]["severity_level"];
           status: Database["public"]["Enums"]["report_status"];
           latitude: number;
@@ -87,7 +87,7 @@ export type Database = {
           user_id: string;
           title: string;
           description: string;
-          category: Database["public"]["Enums"]["waste_category"];
+          category: Database["public"]["Enums"]["waste_category"][];
           severity?: Database["public"]["Enums"]["severity_level"];
           status?: Database["public"]["Enums"]["report_status"];
           latitude: number;
@@ -106,7 +106,7 @@ export type Database = {
           user_id?: string;
           title?: string;
           description?: string;
-          category?: Database["public"]["Enums"]["waste_category"];
+          category?: Database["public"]["Enums"]["waste_category"][];
           severity?: Database["public"]["Enums"]["severity_level"];
           status?: Database["public"]["Enums"]["report_status"];
           latitude?: number;

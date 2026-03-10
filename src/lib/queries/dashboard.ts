@@ -38,7 +38,10 @@ export async function getCategoryCounts(): Promise<CategoryCount[]> {
 
   const counts = data.reduce(
     (acc, report) => {
-      acc[report.category] = (acc[report.category] || 0) + 1;
+      const categories = Array.isArray(report.category) ? report.category : [report.category];
+      for (const cat of categories) {
+        acc[cat] = (acc[cat] || 0) + 1;
+      }
       return acc;
     },
     {} as Record<string, number>

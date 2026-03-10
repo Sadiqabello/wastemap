@@ -174,12 +174,15 @@ export default async function ReportsPage({
                     >
                       {SEVERITY_LABELS[report.severity]}
                     </Badge>
-                    <Badge
-                      variant="secondary"
-                      className="text-xs px-1.5 py-0"
-                    >
-                      {CATEGORY_LABELS[report.category]}
-                    </Badge>
+                    {report.category.map((cat) => (
+                      <Badge
+                        key={cat}
+                        variant="secondary"
+                        className="text-xs px-1.5 py-0"
+                      >
+                        {CATEGORY_LABELS[cat]}
+                      </Badge>
+                    ))}
                   </div>
 
                   {report.address && (

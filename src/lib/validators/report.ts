@@ -1,5 +1,16 @@
 import { z } from "zod";
 
+const wasteCategoryEnum = z.enum([
+  "household",
+  "industrial",
+  "hazardous",
+  "electronic",
+  "construction",
+  "medical",
+  "organic",
+  "other",
+]);
+
 export const reportSchema = z.object({
   title: z
     .string()
@@ -9,16 +20,9 @@ export const reportSchema = z.object({
     .string()
     .min(10, "Description must be at least 10 characters")
     .max(2000, "Description must be under 2000 characters"),
-  category: z.enum([
-    "household",
-    "industrial",
-    "hazardous",
-    "electronic",
-    "construction",
-    "medical",
-    "organic",
-    "other",
-  ]),
+  category: z
+    .array(wasteCategoryEnum)
+    .min(1, "Select at least one waste category"),
   severity: z.enum(["low", "medium", "high", "critical"]),
   latitude: z.number().min(4.27, "Location must be within Nigeria").max(13.89, "Location must be within Nigeria"),
   longitude: z.number().min(2.67, "Location must be within Nigeria").max(14.68, "Location must be within Nigeria"),

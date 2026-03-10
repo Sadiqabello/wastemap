@@ -150,7 +150,7 @@ export default async function AdminReportsPage({
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline" className="text-xs">
-                        {CATEGORY_LABELS[report.category] ?? report.category}
+                        {report.category.map((c: string) => CATEGORY_LABELS[c as keyof typeof CATEGORY_LABELS] ?? c).join(", ")}
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -191,7 +191,7 @@ export default async function AdminReportsPage({
                         <AdminReportEditButton
                           reportId={report.id}
                           title={report.title}
-                          category={report.category}
+                          category={report.category as unknown as string[]}
                           severity={report.severity}
                           status={report.status}
                           description={report.description ?? undefined}

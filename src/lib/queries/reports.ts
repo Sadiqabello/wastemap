@@ -147,7 +147,7 @@ export async function getPaginatedReports({
   }
 
   if (category && category !== "all") {
-    query = query.eq("category", category as "household" | "industrial" | "hazardous" | "electronic" | "construction" | "medical" | "organic" | "other");
+    query = query.contains("category", [category]);
   }
 
   if (severity && severity !== "all") {

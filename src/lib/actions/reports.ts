@@ -23,7 +23,7 @@ export async function createReport(formData: FormData) {
   const raw = {
     title: formData.get("title"),
     description: formData.get("description"),
-    category: formData.get("category"),
+    category: formData.getAll("category"),
     severity: formData.get("severity"),
     latitude: Number(formData.get("latitude")),
     longitude: Number(formData.get("longitude")),
