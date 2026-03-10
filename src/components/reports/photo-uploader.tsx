@@ -4,8 +4,9 @@ import { useState, useCallback, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { compressImage } from "@/lib/compress-image";
 import { toast } from "sonner";
-import { Upload, X, Loader2, ImageIcon } from "lucide-react";
+import { Camera, X, Loader2 } from "lucide-react";
 import Image from "next/image";
+import { CameraCapture } from "@/components/camera-capture";
 
 interface PhotoUploaderProps {
   userId: string;
@@ -22,12 +23,14 @@ export function PhotoUploader({
 }: PhotoUploaderProps) {
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState("");
+  const [cameraOpen, setCameraOpen] = useState(false);
   const valueRef = useRef(value);
   valueRef.current = value;
 
-  const handleUpload = useCallback(
-    async (files: FileList | null) => {
-      if (!files || files.length === 0) return;
+  const handleCapture = useCallback(
+    async (blob: Blob) => {
+      setCameraOpen(false);
+
       if (!userId) {
         toast.error("You must be signed in to upload photos");
         return;
@@ -36,60 +39,40 @@ export function PhotoUploader({
       const remaining = maxPhotos - valueRef.current.length;
       if (remaining <= 0) return;
 
-      const filesToUpload = Array.from(files).slice(0, remaining);
       setUploading(true);
-      setProgress(`Compressing ${filesToUpload.length} photo${filesToUpload.length > 1 ? "s" : ""}...`);
+      setProgress("Compressing photo...");
 
       const supabase = createClient();
 
       try {
-        // Compress all images in parallel
-        const compressed = await Promise.all(
-          filesToUpload.map(async (file, i) => {
-            try {
-              const blob = await compressImage(file);
-              return { blob, name: file.name, index: i };
-            } catch {
-              return { blob: file as Blob, name: file.name, index: i };
-            }
-          })
-        );
-
-        setProgress(`Uploading ${compressed.length} photo${compressed.length > 1 ? "s" : ""}...`);
-
-        // Upload all in parallel
-        const results = await Promise.all(
-          compressed.map(async ({ blob, name }) => {
-            const ext = name.split(".").pop() || "jpg";
-            const fileName = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-
-            const { error } = await supabase.storage
-              .from("report-photos")
-              .upload(fileName, blob, { contentType: "image/jpeg" });
-
-            if (error) {
-              console.error("Upload error:", error);
-              return null;
-            }
-
-            const {
-              data: { publicUrl },
-            } = supabase.storage.from("report-photos").getPublicUrl(fileName);
-
-            return publicUrl;
-          })
-        );
-
-        const uploadedUrls = results.filter(Boolean) as string[];
-
-        if (uploadedUrls.length > 0) {
-          onChange([...valueRef.current, ...uploadedUrls]);
-          toast.success(
-            `${uploadedUrls.length} photo${uploadedUrls.length > 1 ? "s" : ""} uploaded`
-          );
-        } else if (filesToUpload.length > 0) {
-          toast.error("Upload failed. Please check your connection and try again.");
+        let compressed: Blob;
+        try {
+          const file = new File([blob], "camera-photo.jpg", { type: "image/jpeg" });
+          compressed = await compressImage(file);
+        } catch {
+          compressed = blob;
         }
+
+        setProgress("Uploading photo...");
+
+        const fileName = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
+
+        const { error } = await supabase.storage
+          .from("report-photos")
+          .upload(fileName, compressed, { contentType: "image/jpeg" });
+
+        if (error) {
+          console.error("Upload error:", error);
+          toast.error("Upload failed. Please check your connection and try again.");
+          return;
+        }
+
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from("report-photos").getPublicUrl(fileName);
+
+        onChange([...valueRef.current, publicUrl]);
+        toast.success("Photo uploaded");
       } catch (error) {
         console.error("Upload failed:", error);
         toast.error("Upload failed. Please try again.");
@@ -134,43 +117,38 @@ export function PhotoUploader({
         </div>
       )}
 
-      {/* Upload area */}
-      {value.length < maxPhotos && (
-        <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-stone-300 bg-stone-50 px-4 py-6 transition-colors hover:border-emerald-400 hover:bg-emerald-50">
-          <input
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={(e) => {
-              handleUpload(e.target.files);
-              e.target.value = "";
-            }}
-            className="hidden"
-            disabled={uploading}
-          />
-          {uploading ? (
-            <>
-              <Loader2 className="mb-2 h-8 w-8 animate-spin text-emerald-600" />
-              <span className="text-sm text-stone-600">{progress || "Uploading..."}</span>
-            </>
-          ) : (
-            <>
-              <div className="mb-2 rounded-full bg-emerald-100 p-2">
-                {value.length === 0 ? (
-                  <ImageIcon className="h-6 w-6 text-emerald-600" />
-                ) : (
-                  <Upload className="h-6 w-6 text-emerald-600" />
-                )}
-              </div>
-              <span className="text-sm font-medium text-stone-700">
-                {value.length === 0 ? "Add photos" : "Add more photos"}
-              </span>
-              <span className="text-xs text-stone-500">
-                Click or drag to upload
-              </span>
-            </>
-          )}
-        </label>
+      {/* Open camera button */}
+      {value.length < maxPhotos && !uploading && (
+        <button
+          type="button"
+          onClick={() => setCameraOpen(true)}
+          className="flex w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-stone-300 bg-stone-50 px-4 py-6 transition-colors hover:border-emerald-400 hover:bg-emerald-50"
+        >
+          <div className="mb-2 rounded-full bg-emerald-100 p-2">
+            <Camera className="h-6 w-6 text-emerald-600" />
+          </div>
+          <span className="text-sm font-medium text-stone-700">
+            {value.length === 0 ? "Take Photo" : "Take Another Photo"}
+          </span>
+          <span className="text-xs text-stone-500">
+            Opens your camera
+          </span>
+        </button>
+      )}
+
+      {uploading && (
+        <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-emerald-300 bg-emerald-50 px-4 py-6">
+          <Loader2 className="mb-2 h-8 w-8 animate-spin text-emerald-600" />
+          <span className="text-sm text-stone-600">{progress || "Uploading..."}</span>
+        </div>
+      )}
+
+      {/* Full-screen camera overlay */}
+      {cameraOpen && (
+        <CameraCapture
+          onCapture={handleCapture}
+          onClose={() => setCameraOpen(false)}
+        />
       )}
     </div>
   );

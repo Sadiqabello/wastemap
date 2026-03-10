@@ -7,7 +7,7 @@ import { CATEGORY_LABELS, SEVERITY_LABELS, STATUS_LABELS } from "@/lib/constants
 interface Props {
   reportId: string;
   title: string;
-  category: string;
+  category: string[];
   severity: string;
   status: string;
   description?: string;
@@ -25,7 +25,7 @@ export function AdminReportEditButton({ reportId, title, category, severity, sta
           name: "category",
           label: "Category",
           type: "select",
-          defaultValue: category,
+          defaultValue: category.join(", "),
           options: Object.entries(CATEGORY_LABELS).map(([v, l]) => ({ value: v, label: l })),
         },
         {

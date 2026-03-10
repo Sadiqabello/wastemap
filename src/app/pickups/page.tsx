@@ -80,9 +80,10 @@ export default async function PickupsPage() {
       <div className="space-y-5">
         {pickups.map((report) => {
           const isCleanup = report.pickup_type === "cleanup";
-          const categoryLabel =
-            CATEGORY_LABELS[report.category as WasteCategory] ||
-            report.category;
+          const cats = Array.isArray(report.category) ? report.category : [report.category];
+          const categoryLabel = cats
+            .map((c) => CATEGORY_LABELS[c as WasteCategory] || c)
+            .join(", ");
 
           return (
             <Card key={report.id} className="overflow-hidden">

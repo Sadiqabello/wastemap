@@ -46,14 +46,16 @@ export async function trackCarbon(
 
   if (!report) return { error: "Report not found." };
 
-  const co2Factor = CO2_FACTORS[report.category] || 1.0;
+  // Use the first category for CO2 calculation (primary waste type)
+  const primaryCategory = report.category[0];
+  const co2Factor = CO2_FACTORS[primaryCategory] || 1.0;
   const co2Avoided = Math.round(estimatedWeightKg * co2Factor * 100) / 100;
 
   const { error } = await adminClient.from("carbon_tracking").upsert(
     {
       report_id: reportId,
       estimated_weight_kg: estimatedWeightKg,
-      waste_type: report.category,
+      waste_type: primaryCategory,
       co2_avoided_kg: co2Avoided,
       verification_status: "estimated",
     },

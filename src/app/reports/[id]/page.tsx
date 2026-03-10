@@ -109,9 +109,11 @@ export default async function ReportDetailPage({
               >
                 {SEVERITY_LABELS[report.severity]}
               </Badge>
-              <Badge variant="outline">
-                {CATEGORY_LABELS[report.category]}
-              </Badge>
+              {report.category.map((cat) => (
+                <Badge key={cat} variant="outline">
+                  {CATEGORY_LABELS[cat]}
+                </Badge>
+              ))}
             </div>
             <h1 className="text-2xl font-bold text-stone-900">
               {report.title}

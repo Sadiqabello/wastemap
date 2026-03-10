@@ -77,7 +77,7 @@ export function RecentReports({ reports, isAdmin }: RecentReportsProps) {
                     {SEVERITY_LABELS[report.severity]}
                   </Badge>
                   <span className="text-xs text-stone-400">
-                    {CATEGORY_LABELS[report.category]}
+                    {(report.category as unknown as string[]).map((c: string) => CATEGORY_LABELS[c as keyof typeof CATEGORY_LABELS]).join(", ")}
                   </span>
                 </div>
                 <p className="mt-1 text-xs text-stone-400">
