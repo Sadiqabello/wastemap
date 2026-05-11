@@ -4,11 +4,7 @@ import {
   FileText,
   Calendar,
   AlertTriangle,
-  Truck,
-  Handshake,
-  DollarSign,
-  Gift,
-  Plus,
+  Trash2,
   Eye,
   ArrowRight,
 } from "lucide-react";
@@ -20,7 +16,6 @@ import {
   getAdminStats,
   getAdminUserGrowth,
   getRecentActivity,
-  getAdminOverviewExtras,
 } from "@/lib/queries/admin";
 import {
   getReportTrend,
@@ -35,20 +30,10 @@ import { Button } from "@/components/ui/button";
 
 export const dynamic = "force-dynamic";
 
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("en-NG", {
-    style: "currency",
-    currency: "NGN",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
-
 export default async function AdminOverviewPage() {
-  const [stats, extras, userGrowth, activity, reportTrend, statusCounts, categoryCounts] =
+  const [stats, userGrowth, activity, reportTrend, statusCounts, categoryCounts] =
     await Promise.all([
       getAdminStats(),
-      getAdminOverviewExtras(),
       getAdminUserGrowth(),
       getRecentActivity(),
       getReportTrend(),
@@ -67,10 +52,10 @@ export default async function AdminOverviewPage() {
     <div className="space-y-6">
       <AdminPageHeader
         title="Admin Dashboard"
-        description={`Overview of WasteMapNaija platform activity -- ${today}`}
+        description={`Overview of WasteMapNaija platform activity — ${today}`}
       />
 
-      {/* Primary stat cards */}
+      {/* Stat cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Link href="/admin/users" className="block transition-transform hover:scale-[1.02]">
           <AdminStatCard
@@ -105,38 +90,6 @@ export default async function AdminOverviewPage() {
         </Link>
       </div>
 
-      {/* Secondary stat cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Link href="/admin/collectors?status=verified" className="block transition-transform hover:scale-[1.02]">
-          <AdminStatCard
-            title="Active Collectors"
-            value={extras.active_collectors}
-            icon={Truck}
-          />
-        </Link>
-        <Link href="/admin/sponsorships?active=yes" className="block transition-transform hover:scale-[1.02]">
-          <AdminStatCard
-            title="Active Sponsors"
-            value={extras.active_sponsors}
-            icon={Handshake}
-          />
-        </Link>
-        <Link href="/admin/revenue" className="block transition-transform hover:scale-[1.02]">
-          <AdminStatCard
-            title="Total Revenue"
-            value={formatCurrency(extras.total_revenue)}
-            icon={DollarSign}
-          />
-        </Link>
-        <Link href="/admin/rewards?tab=redemptions&status=pending" className="block transition-transform hover:scale-[1.02]">
-          <AdminStatCard
-            title="Pending Redemptions"
-            value={extras.pending_redemptions}
-            icon={Gift}
-          />
-        </Link>
-      </div>
-
       {/* Charts */}
       <div className="grid gap-6 lg:grid-cols-2">
         <UserGrowthChart data={userGrowth} />
@@ -159,33 +112,15 @@ export default async function AdminOverviewPage() {
         <CardContent>
           <div className="flex flex-wrap gap-3">
             <Button asChild variant="outline" size="sm">
-              <Link href="/admin/rewards?action=create">
-                <Plus className="mr-1.5 h-4 w-4" />
-                Create Reward
-              </Link>
-            </Button>
-            <Button asChild variant="outline" size="sm">
-              <Link href="/admin/sponsorships?action=create">
-                <Plus className="mr-1.5 h-4 w-4" />
-                Create Sponsor
-              </Link>
-            </Button>
-            <Button asChild variant="outline" size="sm">
-              <Link href="/admin/collectors?status=pending">
-                <Eye className="mr-1.5 h-4 w-4" />
-                View Pending Collectors
-              </Link>
-            </Button>
-            <Button asChild variant="outline" size="sm">
-              <Link href="/admin/rewards?tab=redemptions&status=pending">
-                <Eye className="mr-1.5 h-4 w-4" />
-                View Pending Redemptions
-              </Link>
-            </Button>
-            <Button asChild variant="outline" size="sm">
               <Link href="/admin/reports?status=reported">
                 <Eye className="mr-1.5 h-4 w-4" />
                 View Pending Reports
+              </Link>
+            </Button>
+            <Button asChild variant="outline" size="sm">
+              <Link href="/admin/dump-sites?status=pending">
+                <Trash2 className="mr-1.5 h-4 w-4" />
+                Review Dump Sites
               </Link>
             </Button>
             <Button asChild variant="outline" size="sm">

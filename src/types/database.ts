@@ -676,6 +676,23 @@ export type Database = {
           }
         ];
       };
+      notifications: {
+        Row: NotificationRow;
+        Insert: Omit<NotificationRow, "id" | "read" | "created_at"> & {
+          id?: string;
+          read?: boolean;
+          created_at?: string;
+        };
+        Update: Partial<NotificationRow>;
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey";
+            columns: ["user_id"];
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
     };
     Views: {
       dashboard_stats: {
@@ -753,6 +770,22 @@ export type Database = {
           p_reason: string;
         };
         Returns: undefined;
+      };
+      spend_points: {
+        Args: {
+          p_user_id: string;
+          p_points: number;
+          p_reason: string;
+        };
+        Returns: boolean;
+      };
+      accept_bid: {
+        Args: { p_bid_id: string; p_user_id: string };
+        Returns: { ok: boolean; error?: string; collector_id?: string; report_id?: string };
+      };
+      complete_bid: {
+        Args: { p_bid_id: string; p_user_id: string };
+        Returns: { ok: boolean; error?: string; report_id?: string; report_owner?: string; is_recycling?: boolean };
       };
       redeem_reward: {
         Args: {

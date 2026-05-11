@@ -94,10 +94,32 @@ export async function updateReportStatus(
     .from("reports")
     .select("status, user_id")
     .eq("id", reportId)
-    .single();
+    .maybeSingle();
 
   if (!report) {
     return { error: "Report not found." };
+  }
+
+  // Authorize: only the owner OR an authority/admin can change status.
+  // Additionally, an owner cannot mark their own report "resolved" — that
+  // step must be confirmed by an authority/admin so users can't farm the
+  // report_resolved points by self-resolving.
+  const { data: actorProfile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+  const role = actorProfile?.role;
+  const isPrivileged = role === "authority" || role === "admin";
+  const isOwner = report.user_id === user.id;
+
+  if (!isOwner && !isPrivileged) {
+    return { error: "You don't have permission to change this report's status." };
+  }
+  if (newStatus === "resolved" && !isPrivileged) {
+    return {
+      error: "Only an authority or admin can mark a report resolved.",
+    };
   }
 
   // Update report status (and cleanup photos if resolving)
@@ -198,66 +220,44 @@ export async function toggleUpvote(reportId: string) {
     return { error: "You must be signed in to upvote." };
   }
 
-  // Check if user already upvoted
+  // upvote_count on reports is maintained automatically by the
+  // trg_sync_upvote_count trigger (migration 017), so the action only needs
+  // to insert or delete the upvotes row.
   const { data: existing } = await supabase
     .from("upvotes")
     .select("user_id")
     .eq("report_id", reportId)
     .eq("user_id", user.id)
-    .single();
+    .maybeSingle();
 
   if (existing) {
-    // Remove upvote
     await supabase
       .from("upvotes")
       .delete()
       .eq("report_id", reportId)
       .eq("user_id", user.id);
-
-    // Decrement count
-    await supabase
-      .from("reports")
-      .update({
-        upvote_count: (
-          await supabase
-            .from("reports")
-            .select("upvote_count")
-            .eq("id", reportId)
-            .single()
-        ).data!.upvote_count - 1,
-      })
-      .eq("id", reportId);
   } else {
-    // Add upvote
-    await supabase.from("upvotes").insert({
+    const { error: insertError } = await supabase.from("upvotes").insert({
       report_id: reportId,
       user_id: user.id,
     });
+    // If a race causes a duplicate insert, treat as no-op rather than fail.
+    if (insertError && insertError.code !== "23505") {
+      console.error("toggleUpvote insert failed:", insertError);
+      return { error: "Failed to upvote." };
+    }
 
-    // Increment count
-    await supabase
-      .from("reports")
-      .update({
-        upvote_count: (
-          await supabase
-            .from("reports")
-            .select("upvote_count")
-            .eq("id", reportId)
-            .single()
-        ).data!.upvote_count + 1,
-      })
-      .eq("id", reportId);
-
-    // Award point for upvoting
+    // Award points + notify only on first upvote
     await awardPoints(user.id, "upvoted_report", reportId);
-    updateChallengeProgress(user.id, "upvoted_report").catch(() => {});
+    updateChallengeProgress(user.id, "upvoted_report").catch((e) =>
+      console.warn("updateChallengeProgress failed:", e)
+    );
 
-    // Notify the report owner about the upvote
     const { data: reportData } = await supabase
       .from("reports")
       .select("user_id, title")
       .eq("id", reportId)
-      .single();
+      .maybeSingle();
     if (reportData && reportData.user_id !== user.id) {
       createNotification(
         reportData.user_id,
@@ -265,7 +265,7 @@ export async function toggleUpvote(reportId: string) {
         "Report Upvoted",
         `Someone upvoted your report '${reportData.title || "Untitled"}'`,
         { reportId }
-      ).catch(() => {});
+      ).catch((e) => console.warn("createNotification failed:", e));
     }
   }
 

@@ -4,7 +4,7 @@ import { useState, useCallback, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { compressImage } from "@/lib/compress-image";
 import { toast } from "sonner";
-import { Camera, X, Loader2 } from "lucide-react";
+import { Camera, Image as ImageIcon, X, Loader2 } from "lucide-react";
 import Image from "next/image";
 import { CameraCapture } from "@/components/camera-capture";
 
@@ -24,6 +24,7 @@ export function PhotoUploader({
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState("");
   const [cameraOpen, setCameraOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const valueRef = useRef(value);
   valueRef.current = value;
 
@@ -88,6 +89,17 @@ export function PhotoUploader({
     onChange(value.filter((_, i) => i !== index));
   };
 
+  const handleGallerySelect = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      e.target.value = "";
+      if (!file) return;
+      // Reuse the same handler — pass the file as a blob.
+      await handleCapture(file);
+    },
+    [handleCapture]
+  );
+
   return (
     <div className="space-y-2">
       <label className="text-sm font-medium">
@@ -117,23 +129,42 @@ export function PhotoUploader({
         </div>
       )}
 
-      {/* Open camera button */}
+      {/* Open camera button + gallery fallback */}
       {value.length < maxPhotos && !uploading && (
-        <button
-          type="button"
-          onClick={() => setCameraOpen(true)}
-          className="flex w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-stone-300 bg-stone-50 px-4 py-6 transition-colors hover:border-emerald-400 hover:bg-emerald-50"
-        >
-          <div className="mb-2 rounded-full bg-emerald-100 p-2">
-            <Camera className="h-6 w-6 text-emerald-600" />
+        <div className="space-y-2">
+          <button
+            type="button"
+            onClick={() => setCameraOpen(true)}
+            className="flex w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-stone-300 bg-stone-50 px-4 py-6 transition-colors hover:border-emerald-400 hover:bg-emerald-50"
+          >
+            <div className="mb-2 rounded-full bg-emerald-100 p-2">
+              <Camera className="h-6 w-6 text-emerald-600" />
+            </div>
+            <span className="text-sm font-medium text-stone-700">
+              {value.length === 0 ? "Take Photo" : "Take Another Photo"}
+            </span>
+            <span className="text-xs text-stone-500">
+              Opens your camera
+            </span>
+          </button>
+          <div className="text-center">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleGallerySelect}
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-stone-500 hover:text-emerald-700"
+            >
+              <ImageIcon className="h-3.5 w-3.5" />
+              Or choose from gallery
+            </button>
           </div>
-          <span className="text-sm font-medium text-stone-700">
-            {value.length === 0 ? "Take Photo" : "Take Another Photo"}
-          </span>
-          <span className="text-xs text-stone-500">
-            Opens your camera
-          </span>
-        </button>
+        </div>
       )}
 
       {uploading && (

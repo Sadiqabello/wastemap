@@ -148,8 +148,8 @@ export async function getRecentActivity(): Promise<
 
   if (updates) {
     for (const u of updates) {
-      const profile = u.profiles as unknown as { full_name: string } | null;
-      const report = u.reports as unknown as { title: string } | null;
+      const profile = u.profiles as { full_name: string } | null;
+      const report = u.reports as { title: string } | null;
       activities.push({
         id: u.id,
         type: "status_update",
@@ -176,49 +176,6 @@ export async function getRecentActivity(): Promise<
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     )
     .slice(0, 10);
-}
-
-export async function getAdminOverviewExtras(): Promise<{
-  active_collectors: number;
-  active_sponsors: number;
-  total_revenue: number;
-  pending_redemptions: number;
-}> {
-  const supabase = await createClient();
-
-  const [
-    { count: activeCollectors },
-    { count: activeSponsors },
-    { data: revenueData },
-    { count: pendingRedemptions },
-  ] = await Promise.all([
-    supabase
-      .from("collector_profiles")
-      .select("*", { count: "exact", head: true })
-      .eq("status", "verified"),
-    supabase
-      .from("sponsorships")
-      .select("*", { count: "exact", head: true })
-      .eq("is_active", true),
-    supabase
-      .from("platform_revenue")
-      .select("amount_naira"),
-    supabase
-      .from("redemptions")
-      .select("*", { count: "exact", head: true })
-      .eq("status", "pending"),
-  ]);
-
-  const totalRevenue = revenueData
-    ? revenueData.reduce((sum, row) => sum + (row.amount_naira ?? 0), 0)
-    : 0;
-
-  return {
-    active_collectors: activeCollectors ?? 0,
-    active_sponsors: activeSponsors ?? 0,
-    total_revenue: totalRevenue,
-    pending_redemptions: pendingRedemptions ?? 0,
-  };
 }
 
 export async function getAllUsers(
@@ -261,7 +218,7 @@ export async function getAllUsers(
   }
 
   // Fetch emails from auth.users via service role client
-  let emailMap: Record<string, string> = {};
+  const emailMap: Record<string, string> = {};
   try {
     const adminClient = createAdminClient();
     // Fetch emails for only the users on this page
@@ -371,7 +328,7 @@ export async function getAllReportsAdmin(
   }
 
   return {
-    reports: data as unknown as AdminReportEntry[],
+    reports: data as AdminReportEntry[],
     total: count ?? 0,
   };
 }
@@ -418,7 +375,7 @@ export async function getAllEventsAdmin(
       ...e,
       event_attendees: undefined as never,
       attendee_count: attendeeCount,
-    } as unknown as AdminEventEntry;
+    } as AdminEventEntry;
   });
 
   return { events, total: count ?? 0 };

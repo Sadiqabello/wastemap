@@ -59,7 +59,7 @@ export async function getReportById(id: string): Promise<ReportDetail | null> {
     userHasUpvoted = !!upvote;
   }
 
-  const typedReport = report as unknown as ReportDetail;
+  const typedReport = report as unknown as ReportDetail; // keep double-cast: status_updates join is too loosely inferred
   typedReport.user_has_upvoted = userHasUpvoted;
   return typedReport;
 }
@@ -80,7 +80,7 @@ export async function getReportsByUserId(
     return [];
   }
 
-  return (data as unknown as ReportWithProfile[]) || [];
+  return (data as ReportWithProfile[]) || [];
 }
 
 export async function getRecentReports(
@@ -99,7 +99,7 @@ export async function getRecentReports(
     return [];
   }
 
-  return (data as unknown as ReportWithProfile[]) || [];
+  return (data as ReportWithProfile[]) || [];
 }
 
 const PAGE_SIZE = 20;
@@ -182,7 +182,7 @@ export async function getPaginatedReports({
   }
 
   return {
-    reports: (data as unknown as ReportWithProfile[]) || [],
+    reports: (data as ReportWithProfile[]) || [],
     total: count ?? 0,
   };
 }

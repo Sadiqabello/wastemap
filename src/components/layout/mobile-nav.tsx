@@ -3,18 +3,15 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/providers/auth-provider";
-import { MapPin, BarChart3, Plus, User, Gift, Calendar, Trash2, Truck, Package } from "lucide-react";
+import { MapPin, Plus, User, Trophy, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/", label: "Map", icon: MapPin },
-  { href: "/dashboard", label: "Stats", icon: BarChart3 },
-  { href: "/reports/new", label: "Report", icon: Plus, requiresAuth: true },
-  { href: "/rewards", label: "Rewards", icon: Gift, requiresAuth: true },
   { href: "/events", label: "Events", icon: Calendar },
-  { href: "/dump-sites", label: "Dumps", icon: Trash2 },
-  { href: "/pickups", label: "Pickups", icon: Package, requiresAuth: true },
-  { href: "/profile", label: "Profile", icon: User, requiresAuth: true },
+  { href: "/reports/new", label: "Report", icon: Plus, requiresAuth: true },
+  { href: "/leaderboard", label: "Ranks", icon: Trophy },
+  { href: "/profile", label: "You", icon: User, requiresAuth: true },
 ];
 
 export function MobileNav() {

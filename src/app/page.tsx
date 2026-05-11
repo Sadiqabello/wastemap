@@ -1,16 +1,14 @@
-import type { Metadata } from "next";
 import Link from "next/link";
-
-export const metadata: Metadata = {
-  title: "Waste Map",
-  description:
-    "Explore an interactive map of waste reports and dump sites across Nigeria. Report illegal dumping and find disposal locations near you.",
-};
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getAllMapMarkers } from "@/lib/queries/reports";
 import { getAllDumpSiteMarkers } from "@/lib/queries/dump-sites";
 import { HomeMapClient } from "@/components/map/home-map-client";
+import { WelcomeSheet } from "@/components/onboarding/welcome-sheet";
+import { createClient } from "@/lib/supabase/server";
+
+const siteUrl =
+  process.env.NEXT_PUBLIC_APP_URL || "https://wastemapnaija.com.ng";
 
 export default async function HomePage() {
   const [markers, dumpSites] = await Promise.all([
@@ -18,67 +16,127 @@ export default async function HomePage() {
     getAllDumpSiteMarkers(),
   ]);
 
+  let isAuthenticated = false;
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    isAuthenticated = !!user;
+  } catch {
+    // unauthenticated
+  }
+
+  const homeJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "@id": `${siteUrl}/#webpage`,
+    url: siteUrl,
+    name: "WasteMapNaija — Report & Track Waste Across Nigeria",
+    description:
+      "Interactive map of waste reports, illegal dumpsites, and disposal locations across Nigeria.",
+    isPartOf: { "@id": `${siteUrl}/#website` },
+    about: {
+      "@type": "Thing",
+      name: "Waste management in Nigeria",
+    },
+    inLanguage: "en-NG",
+    breadcrumb: {
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Home",
+          item: siteUrl,
+        },
+      ],
+    },
+  };
+
   return (
     <div className="relative h-[calc(100vh-3.5rem-4rem)] md:h-[calc(100vh-3.5rem)]">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(homeJsonLd) }}
+      />
+
+      {/* Visually hidden but semantically indexable content for crawlers */}
+      <div className="sr-only">
+        <h1>
+          WasteMapNaija — Nigeria&apos;s Community Waste Reporting Map
+        </h1>
+        <p>
+          Explore an interactive map of waste reports, illegal dumpsites, and
+          verified disposal locations across Nigeria. Report illegal dumping
+          in Lagos, Abuja, Kano, Port Harcourt, Ibadan, Kaduna and every
+          Nigerian state. Earn green points, join community cleanup events,
+          and help build a cleaner Nigeria.
+        </p>
+        <p>
+          Showing {markers.length} waste reports and {dumpSites.length} verified
+          dump sites nationwide. Click any pin for details, or use the
+          &ldquo;Report Waste&rdquo; button to submit a new report.
+        </p>
+        <nav aria-label="Primary">
+          <ul>
+            <li>
+              <Link href="/reports/new">Report waste in your area</Link>
+            </li>
+            <li>
+              <Link href="/dump-sites">Find verified dump sites near you</Link>
+            </li>
+            <li>
+              <Link href="/events">Browse community cleanup events</Link>
+            </li>
+            <li>
+              <Link href="/collectors">Hire verified waste collectors</Link>
+            </li>
+            <li>
+              <Link href="/leaderboard">View the green points leaderboard</Link>
+            </li>
+            <li>
+              <Link href="/tips">Read recycling and waste tips</Link>
+            </li>
+            <li>
+              <Link href="/waste-reports">Browse waste reports by Nigerian state</Link>
+            </li>
+          </ul>
+        </nav>
+
+        <h2>Waste reports by state</h2>
+        <ul>
+          <li><Link href="/waste-reports/lagos">Waste reports in Lagos State</Link></li>
+          <li><Link href="/waste-reports/abuja">Waste reports in Abuja (FCT)</Link></li>
+          <li><Link href="/waste-reports/kano">Waste reports in Kano State</Link></li>
+          <li><Link href="/waste-reports/rivers">Waste reports in Rivers State (Port Harcourt)</Link></li>
+          <li><Link href="/waste-reports/oyo">Waste reports in Oyo State (Ibadan)</Link></li>
+          <li><Link href="/waste-reports/kaduna">Waste reports in Kaduna State</Link></li>
+          <li><Link href="/waste-reports/plateau">Waste reports in Plateau State (Jos)</Link></li>
+          <li><Link href="/waste-reports/enugu">Waste reports in Enugu State</Link></li>
+          <li><Link href="/waste-reports/delta">Waste reports in Delta State</Link></li>
+          <li><Link href="/waste-reports/ogun">Waste reports in Ogun State</Link></li>
+        </ul>
+      </div>
+
       <HomeMapClient markers={markers} dumpSites={dumpSites} />
 
-      {/* Floating Action Button */}
+      {/* Floating Action Button — visible on all sizes; mobile sits above bottom nav */}
       <Link
         href="/reports/new"
-        className="absolute bottom-8 right-8 z-[999] hidden md:block group"
+        className="absolute bottom-20 right-4 z-[999] md:bottom-8 md:right-8"
+        aria-label="Report waste"
       >
         <Button
           size="lg"
-          className="relative h-auto w-auto rounded-lg px-6 bg-emerald-600 shadow-xl hover:bg-emerald-700 hover:shadow-2xl hover:scale-110 transition-all duration-200"
+          className="h-auto rounded-full bg-emerald-600 px-5 py-3 shadow-xl transition-all hover:bg-emerald-700 hover:shadow-2xl md:rounded-lg md:px-6"
         >
-          <Plus className="h-5 w-5 mr-2" />
-          <span>Report Waste</span>
+          <Plus className="h-5 w-5 md:mr-2" />
+          <span className="hidden md:inline">Report Waste</span>
         </Button>
       </Link>
 
-      {/* Map Legend */}
-      <div className="absolute bottom-6 left-4 z-[999] hidden rounded-lg border bg-white/95 p-3 shadow-sm backdrop-blur md:block">
-        <p className="mb-2 text-xs font-semibold text-stone-700">Severity</p>
-        <div className="space-y-1">
-          {[
-            { label: "Low", color: "#22c55e" },
-            { label: "Medium", color: "#eab308" },
-            { label: "High", color: "#f97316" },
-            { label: "Critical", color: "#ef4444" },
-            { label: "Resolved", color: "#9ca3af" },
-          ].map(({ label, color }) => (
-            <div key={label} className="flex items-center gap-2">
-              <span
-                className="h-3 w-3 rounded-full"
-                style={{ backgroundColor: color }}
-              />
-              <span className="text-xs text-stone-600">{label}</span>
-            </div>
-          ))}
-        </div>
-        <hr className="my-2 border-stone-200" />
-        <p className="mb-2 text-xs font-semibold text-stone-700">Dump Sites</p>
-        <div className="space-y-1">
-          {[
-            { label: "Trash Can", color: "#6b7280" },
-            { label: "Recycling Bin", color: "#22c55e" },
-            { label: "Dumpster", color: "#f97316" },
-            { label: "Transfer Station", color: "#3b82f6" },
-            { label: "Landfill", color: "#8b5cf6" },
-            { label: "Compost Site", color: "#10b981" },
-            { label: "Drop-off Center", color: "#ec4899" },
-            { label: "Street Bin", color: "#78716c" },
-          ].map(({ label, color }) => (
-            <div key={label} className="flex items-center gap-2">
-              <span
-                className="h-3 w-3 rounded-sm"
-                style={{ backgroundColor: color }}
-              />
-              <span className="text-xs text-stone-600">{label}</span>
-            </div>
-          ))}
-        </div>
-      </div>
+      <WelcomeSheet isAuthenticated={isAuthenticated} />
     </div>
   );
 }

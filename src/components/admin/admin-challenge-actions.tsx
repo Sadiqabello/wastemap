@@ -4,7 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { AdminEditDialog } from "./admin-edit-dialog";
-import { toggleChallengeActive, deleteChallenge, editChallenge } from "@/lib/actions/admin-rewards";
+import { toggleChallengeActive, deleteChallenge, editChallenge } from "@/lib/actions/admin-challenges";
 import { Power, Trash2, Loader2 } from "lucide-react";
 
 interface AdminChallengeActionsProps {

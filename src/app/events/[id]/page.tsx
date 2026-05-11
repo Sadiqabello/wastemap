@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import {
@@ -11,6 +12,58 @@ import {
 } from "lucide-react";
 import { getEventById } from "@/lib/queries/events";
 import { createClient } from "@/lib/supabase/server";
+
+const siteUrl =
+  process.env.NEXT_PUBLIC_APP_URL || "https://wastemapnaija.com.ng";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const event = await getEventById(id);
+
+  if (!event) {
+    return {
+      title: "Event Not Found",
+      robots: { index: false, follow: false },
+    };
+  }
+
+  const eventDate = new Date(event.event_date + "T00:00:00");
+  const dateStr = eventDate.toLocaleDateString("en-NG", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
+  const description = `Community cleanup event on ${dateStr}${
+    event.address ? ` at ${event.address}` : ""
+  }. ${event.description.slice(0, 140)}...`;
+
+  return {
+    title: `${event.title} — Cleanup Event`,
+    description,
+    alternates: { canonical: `/events/${id}` },
+    openGraph: {
+      title: event.title,
+      description,
+      url: `/events/${id}`,
+      type: "article",
+      images:
+        event.photo_urls && event.photo_urls.length > 0
+          ? [{ url: event.photo_urls[0], width: 1200, height: 630, alt: event.title }]
+          : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: event.title,
+      description,
+      images: event.photo_urls?.[0] ? [event.photo_urls[0]] : undefined,
+    },
+  };
+}
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -71,8 +124,67 @@ export default async function EventDetailPage({
     if (profile?.full_name) userName = profile.full_name;
   }
 
+  const eventStartIso = `${event.event_date}T${event.start_time}`;
+  const eventEndIso = event.end_time
+    ? `${event.event_date}T${event.end_time}`
+    : undefined;
+
+  const eventJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Event",
+    "@id": `${siteUrl}/events/${event.id}#event`,
+    name: event.title,
+    description: event.description,
+    startDate: eventStartIso,
+    ...(eventEndIso ? { endDate: eventEndIso } : {}),
+    eventStatus:
+      event.status === "cancelled"
+        ? "https://schema.org/EventCancelled"
+        : event.status === "completed"
+          ? "https://schema.org/EventScheduled"
+          : "https://schema.org/EventScheduled",
+    eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+    location: {
+      "@type": "Place",
+      name: event.address || "Cleanup Site",
+      address: event.address || undefined,
+      geo: {
+        "@type": "GeoCoordinates",
+        latitude: event.latitude,
+        longitude: event.longitude,
+      },
+    },
+    organizer: {
+      "@type": "Person",
+      name: event.profiles?.full_name || "WasteMapNaija Organizer",
+    },
+    isAccessibleForFree: true,
+    image: event.photo_urls && event.photo_urls.length > 0 ? event.photo_urls : undefined,
+    inLanguage: "en-NG",
+    superEvent: { "@id": `${siteUrl}/#organization` },
+  };
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: siteUrl },
+      { "@type": "ListItem", position: 2, name: "Events", item: `${siteUrl}/events` },
+      { "@type": "ListItem", position: 3, name: event.title, item: `${siteUrl}/events/${event.id}` },
+    ],
+  };
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(eventJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+
       <Link href="/events">
         <Button variant="ghost" size="sm" className="mb-4">
           <ArrowLeft className="mr-1 h-4 w-4" />

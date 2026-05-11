@@ -1,6 +1,5 @@
 "use client";
 
-import { SEVERITY_LABELS, SEVERITY_COLORS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import type { SeverityLevel } from "@/types";
 
@@ -9,47 +8,100 @@ interface SeveritySelectProps {
   onChange: (severity: SeverityLevel) => void;
 }
 
-export function SeveritySelect({ value, onChange }: SeveritySelectProps) {
-  return (
-    <div className="space-y-2">
-      <label className="text-sm font-medium">
-        Severity Level <span className="text-red-500">*</span>
-      </label>
-      <div className="grid grid-cols-4 gap-2">
-        {(Object.keys(SEVERITY_LABELS) as SeverityLevel[]).map((severity) => {
-          const isSelected = value === severity;
-          const color = SEVERITY_COLORS[severity];
+const STEPS: {
+  value: SeverityLevel;
+  label: string;
+  caption: string;
+  color: string;
+}[] = [
+  {
+    value: "low",
+    label: "A few bags",
+    caption: "Small, easily cleaned",
+    color: "#22c55e",
+  },
+  {
+    value: "medium",
+    label: "Bin-sized",
+    caption: "A noticeable pile",
+    color: "#eab308",
+  },
+  {
+    value: "high",
+    label: "Big pile",
+    caption: "Blocking a road or path",
+    color: "#f97316",
+  },
+  {
+    value: "critical",
+    label: "Hazardous",
+    caption: "Health or safety risk",
+    color: "#ef4444",
+  },
+];
 
+export function SeveritySelect({ value, onChange }: SeveritySelectProps) {
+  // Default to medium so it's never a blocker
+  const effective: SeverityLevel = value || "medium";
+  const activeIndex = STEPS.findIndex((s) => s.value === effective);
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-baseline justify-between">
+        <label className="text-sm font-medium">
+          How serious is it?
+        </label>
+        <span
+          className="text-xs font-semibold"
+          style={{ color: STEPS[activeIndex].color }}
+        >
+          {STEPS[activeIndex].label}
+        </span>
+      </div>
+
+      <div className="grid grid-cols-4 gap-1.5">
+        {STEPS.map((step, i) => {
+          const isActive = i === activeIndex;
+          const isPassed = i < activeIndex;
           return (
             <button
-              key={severity}
+              key={step.value}
               type="button"
-              onClick={() => onChange(severity)}
+              onClick={() => onChange(step.value)}
               className={cn(
-                "flex flex-col items-center gap-1.5 rounded-lg border-2 p-3 transition-all",
-                isSelected
-                  ? "border-current bg-opacity-10"
-                  : "border-stone-200 hover:border-stone-300"
+                "h-2 rounded-full transition-colors",
+                isActive || isPassed ? "" : "bg-stone-200"
               )}
               style={
-                isSelected
-                  ? { borderColor: color, backgroundColor: `${color}15` }
+                isActive || isPassed
+                  ? { backgroundColor: step.color }
                   : undefined
               }
-            >
-              <div
-                className="h-4 w-4 rounded-full"
-                style={{ backgroundColor: color }}
-              />
-              <span
-                className="text-xs font-medium"
-                style={isSelected ? { color } : undefined}
-              >
-                {SEVERITY_LABELS[severity]}
-              </span>
-            </button>
+              aria-label={`Set severity to ${step.label}`}
+            />
           );
         })}
+      </div>
+
+      <p className="text-xs text-stone-500">{STEPS[activeIndex].caption}</p>
+
+      {/* Hidden 4-step segmented control for keyboard / direct selection */}
+      <div className="flex justify-between text-[10px] text-stone-400">
+        {STEPS.map((step, i) => (
+          <button
+            key={step.value}
+            type="button"
+            onClick={() => onChange(step.value)}
+            className={cn(
+              "rounded px-1 transition-colors",
+              i === activeIndex
+                ? "font-semibold text-stone-700"
+                : "hover:text-stone-600"
+            )}
+          >
+            {step.label}
+          </button>
+        ))}
       </div>
     </div>
   );

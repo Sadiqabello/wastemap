@@ -191,7 +191,7 @@ export default async function AdminReportsPage({
                         <AdminReportEditButton
                           reportId={report.id}
                           title={report.title}
-                          category={report.category as unknown as string[]}
+                          category={report.category as string[]}
                           severity={report.severity}
                           status={report.status}
                           description={report.description ?? undefined}

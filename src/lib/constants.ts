@@ -1,4 +1,4 @@
-import type { WasteCategory, SeverityLevel, ReportStatus, UserTier, RewardCategory, DumpSiteType } from "@/types";
+import type { WasteCategory, SeverityLevel, ReportStatus, UserTier, DumpSiteType } from "@/types";
 
 export const CATEGORY_LABELS: Record<WasteCategory, string> = {
   household: "Household",
@@ -164,25 +164,6 @@ export function getTierProgress(points: number, currentTier: UserTier): number {
   );
 }
 
-// ── Reward Category Labels ───────────────────────────────────
-export const REWARD_CATEGORY_LABELS: Record<RewardCategory, string> = {
-  airtime: "Airtime",
-  data: "Data Bundle",
-  bank_transfer: "Cash Transfer",
-  gift_card: "Gift Card",
-  utility: "Utility Bill",
-  merchandise: "Merchandise",
-};
-
-export const REWARD_CATEGORY_ICONS: Record<RewardCategory, string> = {
-  airtime: "Phone",
-  data: "Wifi",
-  bank_transfer: "Banknote",
-  gift_card: "Gift",
-  utility: "Zap",
-  merchandise: "ShoppingBag",
-};
-
 // ── Nigeria Bounds ───────────────────────────────────────────
 export const NIGERIA_BOUNDS: [[number, number], [number, number]] = [
   [4.27, 2.67],   // Southwest corner
@@ -211,72 +192,6 @@ export const DEFAULT_MAP_ZOOM = Number(
   process.env.NEXT_PUBLIC_DEFAULT_MAP_ZOOM || "12"
 );
 
-// ── Platform Fees ────────────────────────────────────────────
-export const PLATFORM_FEE_PERCENT = 5; // 5% on redemptions
-export const COLLECTOR_COMMISSION_PERCENT = 15; // 15% on pickup bids
-export const RECYCLING_PLATFORM_SHARE_PERCENT = 20; // 20% of recycling value
-
-// ── Premium Subscription ────────────────────────────────────
-export const PREMIUM_PLANS = {
-  monthly: { label: "Monthly", price: 1000, durationDays: 30 },
-  quarterly: { label: "Quarterly", price: 2500, durationDays: 90 },
-  annual: { label: "Annual", price: 8000, durationDays: 365 },
-} as const;
-
-export const PREMIUM_BENEFITS = {
-  bonus_multiplier: 0.5, // +0.5x on top of tier multiplier
-  min_withdrawal: 100, // ₦100 vs ₦500 for free
-  redemption_fee: 0, // 0% vs 5%
-  priority_fulfillment: true,
-  exclusive_challenges: true,
-} as const;
-
-// ── Collector Marketplace ────────────────────────────────────
-export const COLLECTOR_STATUS_LABELS: Record<string, string> = {
-  pending: "Pending Verification",
-  verified: "Verified",
-  suspended: "Suspended",
-  rejected: "Rejected",
-};
-
-export const BID_STATUS_LABELS: Record<string, string> = {
-  pending: "Pending",
-  accepted: "Accepted",
-  rejected: "Rejected",
-  completed: "Completed",
-  cancelled: "Cancelled",
-};
-
-export const BID_STATUS_COLORS: Record<string, string> = {
-  pending: "#eab308",
-  accepted: "#22c55e",
-  rejected: "#ef4444",
-  completed: "#3b82f6",
-  cancelled: "#6b7280",
-};
-
-// ── Sponsorship ──────────────────────────────────────────────
-export const SPONSORSHIP_TIER_LABELS: Record<string, string> = {
-  bronze: "Bronze",
-  silver: "Silver",
-  gold: "Gold",
-  platinum: "Platinum",
-};
-
-export const SPONSORSHIP_TIER_COLORS: Record<string, string> = {
-  bronze: "#cd7f32",
-  silver: "#c0c0c0",
-  gold: "#ffd700",
-  platinum: "#e5e4e2",
-};
-
-export const SPONSORSHIP_TIER_PRICING: Record<string, number> = {
-  bronze: 500000,
-  silver: 1500000,
-  gold: 3000000,
-  platinum: 5000000,
-};
-
 // ── Carbon Credits ───────────────────────────────────────────
 // CO2 emission factors per waste type (kg CO2 per kg waste if burned/landfilled)
 export const CO2_FACTORS: Record<string, number> = {
@@ -291,16 +206,6 @@ export const CO2_FACTORS: Record<string, number> = {
 };
 
 export const CARBON_CREDIT_PRICE_USD = 10; // avg voluntary market price per tonne
-
-// ── Recycling Value (Naira per kg) ──────────────────────────
-export const RECYCLING_VALUES: Record<string, { min: number; max: number; reporter_share: number }> = {
-  electronic: { min: 2000, max: 4000, reporter_share: 0.15 },
-  construction: { min: 50, max: 100, reporter_share: 0.20 },
-  organic: { min: 20, max: 50, reporter_share: 0.25 },
-  household: { min: 30, max: 80, reporter_share: 0.20 },
-  industrial: { min: 100, max: 300, reporter_share: 0.20 },
-  other: { min: 20, max: 60, reporter_share: 0.25 },
-};
 
 // ── Dump Site Types ─────────────────────────────────────────
 export const DUMP_SITE_TYPE_LABELS: Record<DumpSiteType, string> = {
