@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { AdminEditDialog } from "./admin-edit-dialog";
 import { updateDumpSiteStatus } from "@/lib/actions/dump-sites";
-import { adminDeleteDumpSite, adminEditDumpSite } from "@/lib/actions/admin-collectors";
+import { adminDeleteDumpSite, adminEditDumpSite } from "@/lib/actions/admin-dump-sites";
 import { CheckCircle2, XCircle, Archive, Trash2, Loader2 } from "lucide-react";
 import { DUMP_SITE_TYPE_LABELS } from "@/lib/constants";
 

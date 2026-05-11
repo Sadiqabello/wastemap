@@ -14,7 +14,7 @@ export async function getEvents(): Promise<EventWithOrganizer[]> {
     return [];
   }
 
-  return data as unknown as EventWithOrganizer[];
+  return data as EventWithOrganizer[];
 }
 
 export async function getUpcomingEvents(
@@ -37,7 +37,7 @@ export async function getUpcomingEvents(
     return [];
   }
 
-  return data as unknown as EventWithOrganizer[];
+  return data as EventWithOrganizer[];
 }
 
 export async function getEventById(id: string): Promise<EventDetail | null> {
@@ -72,7 +72,7 @@ export async function getEventById(id: string): Promise<EventDetail | null> {
     ? attendees.find((a) => a.user_id === user.id)
     : null;
 
-  const result = event as unknown as EventDetail;
+  const result = event as EventDetail;
   result.attendee_count = attendees.filter((a) => a.status === "going").length;
   result.user_is_attending = !!userAttendee;
   result.user_rsvp_status = userAttendee?.status || null;

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import type { Json } from "@/types/database";
 
 export type NotificationType =
   | "points_earned"
@@ -34,12 +35,12 @@ export async function createNotification(
 ): Promise<void> {
   try {
     const adminClient = createAdminClient();
-    await (adminClient.from as any)("notifications").insert({
+    await adminClient.from("notifications").insert({
       user_id: userId,
       type,
       title,
       message,
-      data,
+      data: data as Json,
     });
   } catch (err) {
     console.error("Failed to create notification:", err);
@@ -51,7 +52,8 @@ export async function createNotification(
  */
 export async function markAsRead(notificationId: string) {
   const supabase = await createClient();
-  const { error } = await (supabase.from as any)("notifications")
+  const { error } = await supabase
+    .from("notifications")
     .update({ read: true })
     .eq("id", notificationId);
 
@@ -70,7 +72,8 @@ export async function markAllAsRead() {
   } = await supabase.auth.getUser();
   if (!user) return { error: "Not authenticated" };
 
-  const { error } = await (supabase.from as any)("notifications")
+  const { error } = await supabase
+    .from("notifications")
     .update({ read: true })
     .eq("user_id", user.id)
     .eq("read", false);
@@ -85,7 +88,8 @@ export async function markAllAsRead() {
  */
 export async function deleteNotification(notificationId: string) {
   const supabase = await createClient();
-  const { error } = await (supabase.from as any)("notifications")
+  const { error } = await supabase
+    .from("notifications")
     .delete()
     .eq("id", notificationId);
 

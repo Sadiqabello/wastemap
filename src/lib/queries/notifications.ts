@@ -12,7 +12,8 @@ export async function getNotifications(
 
   if (!user) return { notifications: [], total: 0 };
 
-  const { data, error, count } = await (supabase.from as any)("notifications")
+  const { data, error, count } = await supabase
+    .from("notifications")
     .select("*", { count: "exact" })
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
@@ -24,7 +25,7 @@ export async function getNotifications(
   }
 
   return {
-    notifications: (data as unknown as NotificationRow[]) || [],
+    notifications: (data as NotificationRow[]) || [],
     total: count || 0,
   };
 }
@@ -37,7 +38,8 @@ export async function getUnreadCount(): Promise<number> {
 
   if (!user) return 0;
 
-  const { count, error } = await (supabase.from as any)("notifications")
+  const { count, error } = await supabase
+    .from("notifications")
     .select("id", { count: "exact", head: true })
     .eq("user_id", user.id)
     .eq("read", false);

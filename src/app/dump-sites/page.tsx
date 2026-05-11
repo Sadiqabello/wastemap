@@ -2,9 +2,25 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Dump Sites",
+  title: "Verified Dump Sites & Recycling Centers in Nigeria",
   description:
-    "Find verified waste disposal and recycling locations across Nigeria. Discover nearby trash bins, dumpsters, transfer stations, and drop-off centers.",
+    "Find verified waste disposal, recycling drop-off centers, transfer stations, landfills, and street bins across Nigeria. Locate the nearest official dump site in Lagos, Abuja, Kano, Ibadan, and every Nigerian state.",
+  alternates: { canonical: "/dump-sites" },
+  keywords: [
+    "dump sites Nigeria",
+    "recycling centers Nigeria",
+    "waste disposal Lagos",
+    "transfer station Abuja",
+    "drop-off recycling Nigeria",
+    "where to dump waste Nigeria",
+  ],
+  openGraph: {
+    title: "Verified Dump Sites & Recycling Centers in Nigeria",
+    description:
+      "Find official waste disposal and recycling locations near you in Nigeria.",
+    url: "/dump-sites",
+    type: "website",
+  },
 };
 import { Trash2, Plus, MapPin, Navigation, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";

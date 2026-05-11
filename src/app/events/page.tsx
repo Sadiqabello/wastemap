@@ -2,9 +2,24 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Cleanup Events",
+  title: "Cleanup Events in Nigeria — Join or Organize a Community Cleanup",
   description:
-    "Join community cleanup events across Nigeria or organize your own. Volunteer to clean up waste sites and earn green points for your contributions.",
+    "Join community cleanup events across Nigeria or organize your own. Volunteer to clean up waste sites in Lagos, Abuja, Kano, Port Harcourt and beyond. Earn green points for every event you attend.",
+  alternates: { canonical: "/events" },
+  keywords: [
+    "cleanup events Nigeria",
+    "volunteer cleanup Lagos",
+    "community cleanup Abuja",
+    "environmental volunteering Nigeria",
+    "waste cleanup events",
+  ],
+  openGraph: {
+    title: "Cleanup Events in Nigeria — WasteMapNaija",
+    description:
+      "Join or organize community cleanup events across Nigeria. Earn green points for volunteering.",
+    url: "/events",
+    type: "website",
+  },
 };
 import { CalendarPlus, CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";

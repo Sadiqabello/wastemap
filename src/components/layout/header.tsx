@@ -13,19 +13,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MapPin, Plus, User, LogOut, Trophy, Star, Shield, Gift, Users, Target, Award, Crown, Truck, Lightbulb, Trash2, Bell } from "lucide-react";
+import { MapPin, Plus, User, LogOut, Star, Shield, Award, FileText, Bell, LayoutDashboard } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NotificationBell } from "@/components/notifications/notification-bell";
 
 const navLinks = [
   { href: "/", label: "Map" },
-  { href: "/dashboard", label: "Dashboard" },
   { href: "/events", label: "Events" },
-  { href: "/rewards", label: "Rewards" },
-  { href: "/collectors", label: "Collectors" },
   { href: "/dump-sites", label: "Dump Sites" },
-  { href: "/challenges", label: "Challenges" },
   { href: "/leaderboard", label: "Leaderboard" },
+  { href: "/tips", label: "Tips" },
 ];
 
 export function Header() {
@@ -112,25 +109,16 @@ export function Header() {
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuContent align="end" className="w-52">
                   <div className="px-2 py-1.5">
-                    <p className="text-sm font-medium">{profile?.full_name}</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="truncate text-sm font-medium">
+                      {profile?.full_name}
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground">
                       {user.email}
                     </p>
-                    {profile && (
-                      <p className="mt-0.5 text-xs text-emerald-600">
-                        {profile.points} green points
-                      </p>
-                    )}
                   </div>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link href="/notifications" className="cursor-pointer">
-                      <Bell className="mr-2 h-4 w-4" />
-                      Notifications
-                    </Link>
-                  </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href="/profile" className="cursor-pointer">
                       <User className="mr-2 h-4 w-4" />
@@ -138,21 +126,15 @@ export function Header() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/rewards" className="cursor-pointer">
-                      <Gift className="mr-2 h-4 w-4" />
-                      Rewards
+                    <Link href="/dashboard" className="cursor-pointer">
+                      <LayoutDashboard className="mr-2 h-4 w-4" />
+                      Dashboard
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/referrals" className="cursor-pointer">
-                      <Users className="mr-2 h-4 w-4" />
-                      Referrals
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/challenges" className="cursor-pointer">
-                      <Target className="mr-2 h-4 w-4" />
-                      Challenges
+                    <Link href="/reports" className="cursor-pointer">
+                      <FileText className="mr-2 h-4 w-4" />
+                      My Reports
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
@@ -162,42 +144,21 @@ export function Header() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/collectors" className="cursor-pointer">
-                      <Truck className="mr-2 h-4 w-4" />
-                      Collectors
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/dump-sites" className="cursor-pointer">
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Dump Sites
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/tips" className="cursor-pointer">
-                      <Lightbulb className="mr-2 h-4 w-4" />
-                      Eco Tips
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/premium" className="cursor-pointer">
-                      <Crown className="mr-2 h-4 w-4" />
-                      Premium
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/leaderboard" className="cursor-pointer">
-                      <Trophy className="mr-2 h-4 w-4" />
-                      Leaderboard
+                    <Link href="/notifications" className="cursor-pointer">
+                      <Bell className="mr-2 h-4 w-4" />
+                      Notifications
                     </Link>
                   </DropdownMenuItem>
                   {profile?.role === "admin" && (
-                    <DropdownMenuItem asChild>
-                      <Link href="/admin" className="cursor-pointer">
-                        <Shield className="mr-2 h-4 w-4" />
-                        Admin Panel
-                      </Link>
-                    </DropdownMenuItem>
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin" className="cursor-pointer">
+                          <Shield className="mr-2 h-4 w-4" />
+                          Admin Panel
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
                   )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem

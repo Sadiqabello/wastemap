@@ -23,7 +23,7 @@ export async function getVerifiedDumpSites(): Promise<DumpSiteRow[]> {
     return [];
   }
 
-  return (data || []) as unknown as DumpSiteRow[];
+  return (data || []) as DumpSiteRow[];
 }
 
 export async function getUserDumpSites(userId: string): Promise<DumpSiteRow[]> {
@@ -41,7 +41,7 @@ export async function getUserDumpSites(userId: string): Promise<DumpSiteRow[]> {
     return [];
   }
 
-  return (data || []) as unknown as DumpSiteRow[];
+  return (data || []) as DumpSiteRow[];
 }
 
 export async function getAllDumpSiteMarkers(): Promise<DumpSiteMapMarker[]> {
@@ -57,7 +57,7 @@ export async function getAllDumpSiteMarkers(): Promise<DumpSiteMapMarker[]> {
     return [];
   }
 
-  return (data as unknown as DumpSiteMapMarker[]) || [];
+  return (data as DumpSiteMapMarker[]) || [];
 }
 
 export async function getDumpSiteById(
@@ -76,7 +76,7 @@ export async function getDumpSiteById(
     return null;
   }
 
-  const site = data as unknown as DumpSiteWithProfile;
+  const site = data as DumpSiteWithProfile;
 
   // Fetch profile separately
   const { data: profile } = await supabase
@@ -126,7 +126,7 @@ export async function getNearbyDumpSites(
   if (!data) return [];
 
   // Calculate distance and sort by proximity
-  const sitesWithDistance = (data as unknown as DumpSiteWithProfile[]).map(
+  const sitesWithDistance = (data as DumpSiteWithProfile[]).map(
     (site) => {
       const dLat = ((site.latitude - lat) * Math.PI) / 180;
       const dLng = ((site.longitude - lng) * Math.PI) / 180;
@@ -163,7 +163,7 @@ export async function searchDumpSites(
     return [];
   }
 
-  return (data as unknown as DumpSiteWithProfile[]) || [];
+  return (data as DumpSiteWithProfile[]) || [];
 }
 
 export async function getAllDumpSitesAdmin(
@@ -211,7 +211,7 @@ export async function getAllDumpSitesAdmin(
   }
 
   // Fetch profiles separately (added_by references auth.users, not profiles directly)
-  const sites = (data || []) as unknown as DumpSiteWithProfile[];
+  const sites = (data || []) as DumpSiteWithProfile[];
   const userIds = sites.map((s) => s.added_by);
 
   if (userIds.length > 0) {

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getNotifications } from "@/lib/queries/notifications";
@@ -9,6 +10,7 @@ export const metadata: Metadata = {
   title: "Notifications",
   description:
     "View your notifications for points earned, report updates, event RSVPs, collector bids, and achievements on WasteMapNaija.",
+  robots: { index: false, follow: false },
 };
 
 export default async function NotificationsPage() {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Bell } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -11,24 +11,31 @@ import { cn } from "@/lib/utils";
 export function NotificationBell() {
   const { user } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
+  const supabase = useMemo(() => createClient(), []);
 
-  const fetchUnread = useCallback(async () => {
+  // Initial fetch — runs on mount and whenever the user changes.
+  // (When the user signs out the component renders null anyway, so we don't
+  // need to reset the count synchronously.)
+  useEffect(() => {
     if (!user) return;
-    const supabase = createClient();
-    const { count } = await (supabase.from as any)("notifications")
+    let cancelled = false;
+    supabase
+      .from("notifications")
       .select("id", { count: "exact", head: true })
       .eq("user_id", user.id)
-      .eq("read", false);
-    setUnreadCount(count || 0);
-  }, [user]);
+      .eq("read", false)
+      .then(({ count }) => {
+        if (!cancelled) setUnreadCount(count || 0);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user, supabase]);
 
+  // Realtime subscription for new notifications.
   useEffect(() => {
     if (!user) return;
 
-    fetchUnread();
-
-    // Subscribe to new notifications in real-time
-    const supabase = createClient();
     const channel = supabase
       .channel("notifications")
       .on(
@@ -42,7 +49,6 @@ export function NotificationBell() {
         (payload) => {
           setUnreadCount((prev) => prev + 1);
 
-          // Show a toast for the new notification
           const notification = payload.new as {
             title: string;
             message: string;
@@ -67,7 +73,7 @@ export function NotificationBell() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, fetchUnread]);
+  }, [user, supabase]);
 
   if (!user) return null;
 

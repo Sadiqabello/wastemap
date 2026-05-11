@@ -4,6 +4,7 @@ import {
   createContext,
   useContext,
   useEffect,
+  useMemo,
   useState,
   type ReactNode,
 } from "react";
@@ -39,7 +40,9 @@ export function AuthProvider({
   const [user, setUser] = useState<User | null>(initialUser);
   const [profile, setProfile] = useState<Profile | null>(initialProfile);
   const [loading, setLoading] = useState(!initialUser);
-  const supabase = createClient();
+  // One client per provider instance — avoids churning the browser client and
+  // the realtime channel subscription on every render.
+  const supabase = useMemo(() => createClient(), []);
 
   async function fetchProfile(userId: string) {
     const { data } = await supabase

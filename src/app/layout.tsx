@@ -59,22 +59,18 @@ export const metadata: Metadata = {
     title: "WasteMapNaija - Report & Track Waste Across Nigeria",
     description:
       "Nigeria's community-powered waste reporting platform. Map illegal dumpsites, earn green points, join cleanup events, and help build a cleaner Nigeria.",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "WasteMapNaija - Mapping a Cleaner Nigeria",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "WasteMapNaija - Report & Track Waste Across Nigeria",
     description:
       "Nigeria's community-powered waste reporting platform. Map illegal dumpsites, earn green points, and help build a cleaner Nigeria.",
-    images: ["/og-image.png"],
+    creator: "@wastemapnaija",
+    site: "@wastemapnaija",
   },
+  applicationName: "WasteMapNaija",
+  category: "environment",
+  referrer: "origin-when-cross-origin",
   robots: {
     index: true,
     follow: true,
@@ -128,17 +124,33 @@ export default async function RootLayout({
         "@type": "Organization",
         "@id": `${siteUrl}/#organization`,
         name: "WasteMapNaija",
+        alternateName: ["WasteMap Naija", "Waste Map Nigeria"],
         url: siteUrl,
         logo: {
           "@type": "ImageObject",
           url: `${siteUrl}/icon-512.png`,
+          width: 512,
+          height: 512,
         },
         description:
-          "Nigeria's community-powered waste reporting and tracking platform.",
+          "Nigeria's community-powered waste reporting and tracking platform — map illegal dumpsites, organise cleanup events, hire verified collectors, and earn green points.",
         areaServed: {
           "@type": "Country",
           name: "Nigeria",
         },
+        sameAs: [
+          "https://twitter.com/wastemapnaija",
+          "https://www.facebook.com/wastemapnaija",
+          "https://www.instagram.com/wastemapnaija",
+        ],
+        knowsAbout: [
+          "Waste management",
+          "Recycling",
+          "Environmental sustainability",
+          "Community cleanup",
+          "Illegal dumping",
+          "Circular economy",
+        ],
       },
       {
         "@type": "WebSite",
@@ -148,12 +160,21 @@ export default async function RootLayout({
         publisher: { "@id": `${siteUrl}/#organization` },
         description:
           "Map illegal dumpsites, earn green points, join cleanup events, and help build a cleaner Nigeria.",
+        inLanguage: "en-NG",
+        potentialAction: {
+          "@type": "SearchAction",
+          target: {
+            "@type": "EntryPoint",
+            urlTemplate: `${siteUrl}/reports?search={search_term_string}`,
+          },
+          "query-input": "required name=search_term_string",
+        },
       },
     ],
   };
 
   return (
-    <html lang="en">
+    <html lang="en-NG">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

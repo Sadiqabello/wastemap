@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -11,6 +12,51 @@ import {
   XCircle,
 } from "lucide-react";
 import { getDumpSiteById } from "@/lib/queries/dump-sites";
+
+const siteUrl =
+  process.env.NEXT_PUBLIC_APP_URL || "https://wastemapnaija.com.ng";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const site = await getDumpSiteById(id);
+
+  if (!site) {
+    return {
+      title: "Dump Site Not Found",
+      robots: { index: false, follow: false },
+    };
+  }
+
+  const description = `${site.name} — verified ${site.site_type.replace(/_/g, " ")} in Nigeria${
+    site.address ? `, located at ${site.address}` : ""
+  }. ${site.description ? site.description.slice(0, 140) : "Official waste disposal location verified on WasteMapNaija."}`;
+
+  return {
+    title: `${site.name} — Verified ${site.site_type.replace(/_/g, " ")}`,
+    description,
+    alternates: { canonical: `/dump-sites/${id}` },
+    openGraph: {
+      title: site.name,
+      description,
+      url: `/dump-sites/${id}`,
+      type: "article",
+      images:
+        site.photo_urls && site.photo_urls.length > 0
+          ? [{ url: site.photo_urls[0], width: 1200, height: 630, alt: site.name }]
+          : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: site.name,
+      description,
+      images: site.photo_urls?.[0] ? [site.photo_urls[0]] : undefined,
+    },
+  };
+}
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -46,8 +92,69 @@ export default async function DumpSiteDetailPage({
   const statusStyle = STATUS_STYLES[site.status] ?? STATUS_STYLES.pending;
   const createdDate = new Date(site.created_at);
 
+  const placeJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Place",
+    "@id": `${siteUrl}/dump-sites/${site.id}#place`,
+    name: site.name,
+    description: site.description || `${typeLabel} in Nigeria`,
+    additionalType: "https://schema.org/CivicStructure",
+    geo: {
+      "@type": "GeoCoordinates",
+      latitude: site.latitude,
+      longitude: site.longitude,
+    },
+    ...(site.address
+      ? {
+          address: {
+            "@type": "PostalAddress",
+            streetAddress: site.address,
+            addressCountry: "NG",
+          },
+        }
+      : {}),
+    ...(site.operating_hours
+      ? { openingHours: site.operating_hours }
+      : {}),
+    image:
+      site.photo_urls && site.photo_urls.length > 0
+        ? site.photo_urls
+        : undefined,
+    publicAccess: true,
+    isAccessibleForFree: site.is_free,
+  };
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: siteUrl },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Dump Sites",
+        item: `${siteUrl}/dump-sites`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: site.name,
+        item: `${siteUrl}/dump-sites/${site.id}`,
+      },
+    ],
+  };
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(placeJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+
       <Link href="/dump-sites">
         <Button variant="ghost" size="sm" className="mb-4">
           <ArrowLeft className="mr-1 h-4 w-4" />

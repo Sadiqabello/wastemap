@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Plus, Loader2, ChevronDown, ChevronUp } from "lucide-react";
-import { createChallenge } from "@/lib/actions/admin-rewards";
+import { createChallenge } from "@/lib/actions/admin-challenges";
 import { POINT_LABELS } from "@/lib/constants";
 
 export function AdminCreateChallengeForm() {

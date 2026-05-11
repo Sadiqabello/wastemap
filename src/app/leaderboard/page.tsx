@@ -2,9 +2,23 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 
 export const metadata: Metadata = {
-  title: "Leaderboard",
+  title: "Top Waste Reporters in Nigeria — Green Points Leaderboard",
   description:
-    "See the top waste reporting contributors in Nigeria ranked by green points. Compare your rank and climb the leaderboard weekly, monthly, or all-time.",
+    "See Nigeria's most active waste reporters ranked by green points. Browse weekly, monthly, and all-time leaderboards. Find out who's keeping their community cleanest.",
+  alternates: { canonical: "/leaderboard" },
+  keywords: [
+    "environmental leaderboard Nigeria",
+    "top waste reporters",
+    "green points ranking",
+    "community cleanup ranking Nigeria",
+  ],
+  openGraph: {
+    title: "Top Waste Reporters in Nigeria — Green Points Leaderboard",
+    description:
+      "See Nigeria's most active waste reporters ranked by green points.",
+    url: "/leaderboard",
+    type: "website",
+  },
 };
 import { createClient } from "@/lib/supabase/server";
 import { getLeaderboard, getUserRank } from "@/lib/queries/leaderboard";

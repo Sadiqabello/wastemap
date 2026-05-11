@@ -3,19 +3,31 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getReportsByUserId } from "@/lib/queries/reports";
 import { getUserRank } from "@/lib/queries/leaderboard";
-import { getUserRedemptions } from "@/lib/queries/rewards";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  getRecentPointActivity,
+  getStreakAndWeeklyPoints,
+} from "@/lib/queries/points";
+import { getPointValues } from "@/lib/queries/settings";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { StatusBadge } from "@/components/reports/status-badge";
-import { CATEGORY_LABELS, SEVERITY_LABELS, SEVERITY_COLORS } from "@/lib/constants";
 import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/reports/status-badge";
+import {
+  CATEGORY_LABELS,
+  SEVERITY_LABELS,
+  SEVERITY_COLORS,
+  getTierFromPoints,
+} from "@/lib/constants";
 import { AvatarUploader } from "@/components/profile/avatar-uploader";
 import { EditNameForm } from "@/components/profile/edit-name-form";
 import { ChangePasswordForm } from "@/components/profile/change-password-form";
-import { TierProgress } from "@/components/tier/tier-progress";
-import { TierBadge } from "@/components/tier/tier-badge";
-import { RedemptionHistory } from "@/components/rewards/redemption-history";
-import { Plus, FileText, Star, Trophy, Mail, Shield, Calendar, Gift, Users, Award, Truck, Crown } from "lucide-react";
+import { TierHero } from "@/components/motivational/tier-hero";
+import { TierLadder } from "@/components/motivational/tier-ladder";
+import { HowToEarn } from "@/components/motivational/how-to-earn";
+import { RecentActivity } from "@/components/motivational/recent-activity";
+import { StreakCard } from "@/components/motivational/streak-card";
+import { TierUpCelebration } from "@/components/motivational/tier-up-celebration";
+import { Plus, FileText, Mail, Calendar, Trophy, Award, Target, Users } from "lucide-react";
 import type { Profile } from "@/types";
 
 export default async function ProfilePage() {
@@ -23,22 +35,21 @@ export default async function ProfilePage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login?redirectTo=/profile");
-  }
+  if (!user) redirect("/login?redirectTo=/profile");
 
   const { data: profileData } = await supabase
     .from("profiles")
     .select("*")
     .eq("id", user.id)
-    .single();
-
+    .maybeSingle();
   const profile = profileData as Profile | null;
-  const [reports, rankData, redemptions] = await Promise.all([
+
+  const [reports, rankData, activity, streakInfo, pointValues] = await Promise.all([
     getReportsByUserId(user.id),
     getUserRank(user.id),
-    getUserRedemptions(user.id, 5),
+    getRecentPointActivity(user.id, 8),
+    getStreakAndWeeklyPoints(user.id),
+    getPointValues(),
   ]);
 
   const initials = profile?.full_name
@@ -50,162 +61,152 @@ export default async function ProfilePage() {
         .slice(0, 2)
     : "?";
 
+  const points = profile?.points ?? 0;
+  // Trust the DB column, but fall back to derived if tier is missing
+  const tier = (profile?.tier ?? getTierFromPoints(points));
   const resolved = reports.filter((r) => r.status === "resolved").length;
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8">
-      {/* Profile Header */}
-      <Card className="mb-6">
-        <CardContent className="pt-6">
-          <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
-            <AvatarUploader
-              userId={user.id}
-              currentUrl={profile?.avatar_url || null}
-              initials={initials}
-            />
-            <div className="flex-1 text-center sm:text-left">
-              <EditNameForm currentName={profile?.full_name || "User"} />
-              <div className="mt-1 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-sm text-stone-500 sm:justify-start">
-                <span className="flex items-center gap-1">
-                  <Mail className="h-3.5 w-3.5" />
-                  {user.email}
-                </span>
-                <span className="flex items-center gap-1 capitalize">
-                  <Shield className="h-3.5 w-3.5" />
-                  {profile?.role || "reporter"}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Calendar className="h-3.5 w-3.5" />
-                  Joined{" "}
-                  {new Date(user.created_at).toLocaleDateString("en-NG", {
-                    month: "short",
-                    year: "numeric",
-                  })}
-                </span>
-              </div>
+    <div className="mx-auto max-w-3xl px-4 py-6">
+      {/* Fires confetti + modal when the user crosses a tier */}
+      <TierUpCelebration tier={tier} />
 
-              {/* Stats row */}
-              <div className="mt-3 flex flex-wrap items-center justify-center gap-3 sm:justify-start">
-                <div className="rounded-lg bg-stone-50 px-3 py-1.5 text-center">
-                  <p className="text-lg font-bold text-stone-900">
-                    {reports.length}
-                  </p>
-                  <p className="text-[10px] text-stone-500">Reports</p>
-                </div>
-                <div className="rounded-lg bg-stone-50 px-3 py-1.5 text-center">
-                  <p className="text-lg font-bold text-stone-900">{resolved}</p>
-                  <p className="text-[10px] text-stone-500">Resolved</p>
-                </div>
-                {profile && (
-                  <div className="rounded-lg bg-emerald-50 px-3 py-1.5 text-center">
-                    <p className="flex items-center gap-0.5 text-lg font-bold text-emerald-700">
-                      <Star className="h-3.5 w-3.5" />
-                      {profile.points}
-                    </p>
-                    <p className="text-[10px] text-emerald-600">Points</p>
-                  </div>
-                )}
-                {rankData && (
-                  <div className="rounded-lg bg-amber-50 px-3 py-1.5 text-center">
-                    <p className="flex items-center gap-0.5 text-lg font-bold text-amber-700">
-                      <Trophy className="h-3.5 w-3.5" />
-                      #{rankData.rank}
-                    </p>
-                    <p className="text-[10px] text-amber-600">Rank</p>
-                  </div>
-                )}
-              </div>
-            </div>
+      {/* Identity row */}
+      <div className="mb-5 flex items-start gap-4">
+        <AvatarUploader
+          userId={user.id}
+          currentUrl={profile?.avatar_url || null}
+          initials={initials}
+        />
+        <div className="flex-1">
+          <EditNameForm currentName={profile?.full_name || "User"} />
+          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-stone-500">
+            <span className="flex items-center gap-1">
+              <Mail className="h-3 w-3" />
+              {user.email}
+            </span>
+            <span className="flex items-center gap-1">
+              <Calendar className="h-3 w-3" />
+              Joined{" "}
+              {new Date(user.created_at).toLocaleDateString("en-NG", {
+                month: "short",
+                year: "numeric",
+              })}
+            </span>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      {/* Tier Progress */}
-      {profile && (
-        <Card className="mb-6">
-          <CardContent className="pt-4 pb-4">
-            <TierProgress tier={profile.tier} points={profile.points} />
+      {/* Hero card: tier + animated points + progress bar */}
+      <div className="mb-4">
+        <TierHero
+          points={points}
+          tier={tier}
+          rank={rankData?.rank}
+        />
+      </div>
+
+      {/* Streak + weekly points */}
+      <div className="mb-4">
+        <StreakCard
+          streakDays={streakInfo.streakDays}
+          weeklyPoints={streakInfo.weeklyPoints}
+        />
+      </div>
+
+      {/* Stats row */}
+      <div className="mb-6 grid grid-cols-3 gap-3">
+        <Card>
+          <CardContent className="pt-4 pb-3 text-center">
+            <p className="text-2xl font-extrabold text-stone-900">
+              {reports.length}
+            </p>
+            <p className="text-[10px] uppercase tracking-wider text-stone-500">
+              Reports
+            </p>
           </CardContent>
         </Card>
-      )}
+        <Card>
+          <CardContent className="pt-4 pb-3 text-center">
+            <p className="text-2xl font-extrabold text-emerald-600">
+              {resolved}
+            </p>
+            <p className="text-[10px] uppercase tracking-wider text-stone-500">
+              Resolved
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4 pb-3 text-center">
+            <p className="flex items-center justify-center gap-1 text-2xl font-extrabold text-amber-600">
+              <Trophy className="h-4 w-4" />
+              {rankData?.rank ?? "—"}
+            </p>
+            <p className="text-[10px] uppercase tracking-wider text-stone-500">
+              Rank
+            </p>
+          </CardContent>
+        </Card>
+      </div>
 
-      {/* Quick Links */}
-      <div className="grid grid-cols-3 gap-3 mb-6">
-        <Link href="/rewards">
-          <Card className="transition-colors hover:bg-emerald-50">
-            <CardContent className="flex flex-col items-center py-4">
-              <Gift className="h-5 w-5 text-emerald-600 mb-1" />
-              <p className="text-xs font-medium text-stone-700">Rewards</p>
-            </CardContent>
-          </Card>
+      {/* Tier ladder */}
+      <div className="mb-4">
+        <TierLadder points={points} tier={tier} />
+      </div>
+
+      {/* How to earn cheat sheet */}
+      <div className="mb-4">
+        <HowToEarn pointValues={pointValues} />
+      </div>
+
+      {/* Recent point activity */}
+      <div className="mb-4">
+        <RecentActivity items={activity} />
+      </div>
+
+      {/* Quick links to gamification surfaces */}
+      <div className="mb-6 grid grid-cols-3 gap-3">
+        <Link
+          href="/achievements"
+          className="flex flex-col items-center rounded-xl border border-stone-200 bg-white p-3 transition-colors hover:border-purple-300 hover:bg-purple-50"
+        >
+          <Award className="h-5 w-5 text-purple-600" />
+          <span className="mt-1 text-xs font-semibold text-stone-700">
+            Badges
+          </span>
         </Link>
-        <Link href="/referrals">
-          <Card className="transition-colors hover:bg-blue-50">
-            <CardContent className="flex flex-col items-center py-4">
-              <Users className="h-5 w-5 text-blue-600 mb-1" />
-              <p className="text-xs font-medium text-stone-700">Referrals</p>
-            </CardContent>
-          </Card>
+        <Link
+          href="/challenges"
+          className="flex flex-col items-center rounded-xl border border-stone-200 bg-white p-3 transition-colors hover:border-amber-300 hover:bg-amber-50"
+        >
+          <Target className="h-5 w-5 text-amber-600" />
+          <span className="mt-1 text-xs font-semibold text-stone-700">
+            Challenges
+          </span>
         </Link>
-        <Link href="/challenges">
-          <Card className="transition-colors hover:bg-amber-50">
-            <CardContent className="flex flex-col items-center py-4">
-              <Trophy className="h-5 w-5 text-amber-600 mb-1" />
-              <p className="text-xs font-medium text-stone-700">Challenges</p>
-            </CardContent>
-          </Card>
-        </Link>
-        <Link href="/achievements">
-          <Card className="transition-colors hover:bg-purple-50">
-            <CardContent className="flex flex-col items-center py-4">
-              <Award className="h-5 w-5 text-purple-600 mb-1" />
-              <p className="text-xs font-medium text-stone-700">Badges</p>
-            </CardContent>
-          </Card>
-        </Link>
-        <Link href="/collectors">
-          <Card className="transition-colors hover:bg-stone-50">
-            <CardContent className="flex flex-col items-center py-4">
-              <Truck className="h-5 w-5 text-stone-600 mb-1" />
-              <p className="text-xs font-medium text-stone-700">Collectors</p>
-            </CardContent>
-          </Card>
-        </Link>
-        <Link href="/premium">
-          <Card className="transition-colors hover:bg-yellow-50">
-            <CardContent className="flex flex-col items-center py-4">
-              <Crown className="h-5 w-5 text-yellow-600 mb-1" />
-              <p className="text-xs font-medium text-stone-700">Premium</p>
-            </CardContent>
-          </Card>
+        <Link
+          href="/referrals"
+          className="flex flex-col items-center rounded-xl border border-stone-200 bg-white p-3 transition-colors hover:border-blue-300 hover:bg-blue-50"
+        >
+          <Users className="h-5 w-5 text-blue-600" />
+          <span className="mt-1 text-xs font-semibold text-stone-700">
+            Refer
+          </span>
         </Link>
       </div>
 
-      {/* Recent Redemptions */}
-      {redemptions.length > 0 && (
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-semibold text-stone-900">Recent Redemptions</h2>
-            <Link href="/rewards" className="text-xs text-emerald-600 hover:underline">
-              View all
-            </Link>
-          </div>
-          <RedemptionHistory redemptions={redemptions} />
-        </div>
-      )}
-
-      {/* Settings Section */}
+      {/* Settings */}
       <div className="mb-6">
         <ChangePasswordForm />
       </div>
 
-      {/* Reports Section */}
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-stone-900">Your Reports</h2>
+      {/* Reports list */}
+      <div className="mb-3 flex items-center justify-between">
+        <h2 className="text-lg font-bold text-stone-900">Your reports</h2>
         <Link href="/reports/new">
           <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700">
             <Plus className="mr-1 h-4 w-4" />
-            New Report
+            New report
           </Button>
         </Link>
       </div>
@@ -218,17 +219,14 @@ export default async function ProfilePage() {
               You haven&apos;t submitted any reports yet.
             </p>
             <Link href="/reports/new" className="mt-3">
-              <Button
-                size="sm"
-                className="bg-emerald-600 hover:bg-emerald-700"
-              >
+              <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700">
                 Submit your first report
               </Button>
             </Link>
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {reports.map((report) => (
             <Link key={report.id} href={`/reports/${report.id}`}>
               <Card className="transition-colors hover:bg-stone-50">
@@ -251,7 +249,9 @@ export default async function ProfilePage() {
                           {SEVERITY_LABELS[report.severity]}
                         </Badge>
                         <span className="text-xs text-stone-400">
-                          {(report.category as unknown as string[]).map((c: string) => CATEGORY_LABELS[c as keyof typeof CATEGORY_LABELS]).join(", ")}
+                          {report.category
+                            .map((c) => CATEGORY_LABELS[c])
+                            .join(", ")}
                         </span>
                       </div>
                     </div>

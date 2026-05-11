@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { adminVerifyCarbon } from "@/lib/actions/admin-collectors";
+import { adminVerifyCarbon } from "@/lib/actions/admin-dump-sites";
 import { CheckCircle2, Award, Loader2 } from "lucide-react";
 
 interface Props {
